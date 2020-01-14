@@ -4,9 +4,11 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="376c72a0-8c6b-44db-861e-15b1a79e9678" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/lib.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
+    <list default="true" id="376c72a0-8c6b-44db-861e-15b1a79e9678" name="Default Changelist" comment="ty">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/disease.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/disease.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -36,8 +38,43 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="org.rust.cargo.project.model.PROJECT_DISCOVERY" value="true" />
+    <property name="settings.editor.selected.configurable" value="language.rust" />
   </component>
-  <component name="RunManager">
+  <component name="RunAnythingCache">
+    <option name="myCommands">
+      <command value="cargo run" />
+      <command value="cargo clippy" />
+      <command value="cargo check" />
+      <command value="cargo test" />
+    </option>
+  </component>
+  <component name="RunManager" selected="Cargo Command.test">
+    <configuration name="Expand epibox::disease" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="channel" value="DEFAULT" />
+      <option name="command" value="expand --lib --color=always --theme=GitHub --tests disease" />
+      <option name="allFeatures" value="false" />
+      <option name="nocapture" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="backtrace" value="SHORT" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test disease::numerical_example_2" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="channel" value="DEFAULT" />
+      <option name="command" value="test --package epibox --lib disease::numerical_example_2 -- --exact" />
+      <option name="allFeatures" value="false" />
+      <option name="nocapture" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="backtrace" value="SHORT" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
     <configuration default="true" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
       <option name="channel" value="DEFAULT" />
       <option name="command" value="run" />
@@ -50,8 +87,58 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
+    <configuration name="check" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="channel" value="DEFAULT" />
+      <option name="command" value="check" />
+      <option name="allFeatures" value="false" />
+      <option name="nocapture" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="backtrace" value="SHORT" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="run" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="channel" value="DEFAULT" />
+      <option name="command" value="run" />
+      <option name="allFeatures" value="false" />
+      <option name="nocapture" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="backtrace" value="SHORT" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="test" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="channel" value="DEFAULT" />
+      <option name="command" value="test" />
+      <option name="allFeatures" value="false" />
+      <option name="nocapture" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="backtrace" value="SHORT" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Cargo Command.test" />
+        <item itemvalue="Cargo Command.Expand epibox::disease" />
+        <item itemvalue="Cargo Command.Test disease::numerical_example_2" />
+        <item itemvalue="Cargo Command.check" />
+        <item itemvalue="Cargo Command.check" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="RustProjectSettings">
+    <option name="runExternalLinterOnTheFly" value="true" />
+    <option name="runRustfmtOnSave" value="true" />
     <option name="toolchainHomeDirectory" value="$USER_HOME$/.cargo/bin" />
   </component>
   <component name="ServiceViewManager">
@@ -75,5 +162,62 @@
       <updated>1579003198010</updated>
     </task>
     <servers />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="636" y="439" key="#com.intellij.ide.util.MemberChooser" timestamp="1579012326905">
+      <screen x="62" y="0" width="2498" height="1440" />
+    </state>
+    <state x="636" y="439" key="#com.intellij.ide.util.MemberChooser/62.0.2498.1440/2622.-513.1378.2560@62.0.2498.1440" timestamp="1579012326905" />
+    <state x="636" y="439" key="#com.intellij.ide.util.MemberChooser/62.0.2498.1440@62.0.2498.1440" timestamp="1579010181148" />
+    <state x="340" y="317" key="CommitChangelistDialog2" timestamp="1579004785843">
+      <screen x="62" y="0" width="2498" height="1440" />
+    </state>
+    <state x="340" y="317" key="CommitChangelistDialog2/62.0.2498.1440/2622.-513.1378.2560@62.0.2498.1440" timestamp="1579004785843" />
+    <state x="582" y="406" key="ExperimentsDialog" timestamp="1579006313665">
+      <screen x="62" y="0" width="2498" height="1440" />
+    </state>
+    <state x="582" y="406" key="ExperimentsDialog/62.0.2498.1440/2622.-513.1378.2560@62.0.2498.1440" timestamp="1579006313665" />
+    <state width="1002" height="870" key="GridCell.Tab.0.bottom" timestamp="1579012941369">
+      <screen x="62" y="0" width="2498" height="1440" />
+    </state>
+    <state width="1002" height="870" key="GridCell.Tab.0.bottom/62.0.2498.1440/2622.-513.1378.2560@62.0.2498.1440" timestamp="1579012941369" />
+    <state width="1002" height="870" key="GridCell.Tab.0.bottom/62.0.2498.1440@62.0.2498.1440" timestamp="1579011970799" />
+    <state width="1002" height="870" key="GridCell.Tab.0.center" timestamp="1579012941369">
+      <screen x="62" y="0" width="2498" height="1440" />
+    </state>
+    <state width="1002" height="870" key="GridCell.Tab.0.center/62.0.2498.1440/2622.-513.1378.2560@62.0.2498.1440" timestamp="1579012941369" />
+    <state width="1002" height="870" key="GridCell.Tab.0.center/62.0.2498.1440@62.0.2498.1440" timestamp="1579011970799" />
+    <state width="1002" height="870" key="GridCell.Tab.0.left" timestamp="1579012941369">
+      <screen x="62" y="0" width="2498" height="1440" />
+    </state>
+    <state width="1002" height="870" key="GridCell.Tab.0.left/62.0.2498.1440/2622.-513.1378.2560@62.0.2498.1440" timestamp="1579012941369" />
+    <state width="1002" height="870" key="GridCell.Tab.0.left/62.0.2498.1440@62.0.2498.1440" timestamp="1579011970799" />
+    <state width="1002" height="870" key="GridCell.Tab.0.right" timestamp="1579012941369">
+      <screen x="62" y="0" width="2498" height="1440" />
+    </state>
+    <state width="1002" height="870" key="GridCell.Tab.0.right/62.0.2498.1440/2622.-513.1378.2560@62.0.2498.1440" timestamp="1579012941369" />
+    <state width="1002" height="870" key="GridCell.Tab.0.right/62.0.2498.1440@62.0.2498.1440" timestamp="1579011970799" />
+    <state x="336" y="365" key="SettingsEditor" timestamp="1579006142337">
+      <screen x="62" y="0" width="2498" height="1440" />
+    </state>
+    <state x="336" y="365" key="SettingsEditor/62.0.2498.1440/2622.-513.1378.2560@62.0.2498.1440" timestamp="1579006142337" />
+    <state x="529" y="455" width="606" height="536" key="find.popup" timestamp="1579008524333">
+      <screen x="62" y="0" width="2498" height="1440" />
+    </state>
+    <state x="529" y="455" width="606" height="536" key="find.popup/62.0.2498.1440@62.0.2498.1440" timestamp="1579008524333" />
+    <state width="895" height="526" key="javadoc.popup.new" timestamp="1579011891046">
+      <screen x="62" y="0" width="2498" height="1440" />
+    </state>
+    <state width="895" height="526" key="javadoc.popup.new/62.0.2498.1440@62.0.2498.1440" timestamp="1579011891046" />
+    <state x="343" y="344" width="672" height="677" key="run.anything.popup" timestamp="1579012393472">
+      <screen x="62" y="0" width="2498" height="1440" />
+    </state>
+    <state x="343" y="344" width="672" height="677" key="run.anything.popup/62.0.2498.1440/2622.-513.1378.2560@62.0.2498.1440" timestamp="1579012393472" />
+    <state x="343" y="344" width="672" height="677" key="run.anything.popup/62.0.2498.1440@62.0.2498.1440" timestamp="1579011451886" />
+    <state x="350" y="330" width="672" height="678" key="search.everywhere.popup" timestamp="1579012918469">
+      <screen x="62" y="0" width="2498" height="1440" />
+    </state>
+    <state x="350" y="330" width="672" height="678" key="search.everywhere.popup/62.0.2498.1440/2622.-513.1378.2560@62.0.2498.1440" timestamp="1579012918469" />
+    <state x="350" y="330" width="672" height="678" key="search.everywhere.popup/62.0.2498.1440@62.0.2498.1440" timestamp="1579010917294" />
   </component>
 </project>
