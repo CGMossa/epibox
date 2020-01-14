@@ -4,7 +4,7 @@ use std::fmt::{Display, Error, Formatter};
 type Count = f64;
 type Rate = f64;
 
-struct Population {
+pub struct Population {
     disease_compartments: DiseaseStates,
     infection_rate: Rate,
     recovery_rate: Rate,
@@ -22,7 +22,7 @@ type DiseaseStates = DiseaseCompartments<Count>;
 type DiseaseRates = DiseaseCompartments<Rate>;
 
 impl DiseaseStates {
-    fn update_disease(&mut self, disease_rate: DiseaseRates) {
+    pub fn update_disease(&mut self, disease_rate: DiseaseRates) {
         let DiseaseRates {
             susceptible,
             exposed,
@@ -37,7 +37,7 @@ impl DiseaseStates {
         self.recovered += recovered as Rate;
     }
 
-    fn total(&self) -> Count {
+    pub fn total(&self) -> Count {
         self.susceptible + self.exposed + self.infectious + self.removed + self.recovered
     }
 }
@@ -88,22 +88,30 @@ impl Display for DiseaseStates {
     }
 }
 
+pub fn create_sir_model(
+    initial_susceptible_population: Count,
+    initial_infected: Count,
+    infection_rate: Rate,
+    recovery_rate: Rate,
+) -> Population {
+    ///FIXME: how do you ensure that a call to update_disease does a SIR update?
+    Population {
+        disease_compartments: DiseaseCompartments {
+            susceptible: initial_susceptible_population,
+            exposed: 0.0,
+            infectious: initial_infected,
+            removed: 0.0,
+            recovered: 0.0,
+        },
+        infection_rate,
+        recovery_rate,
+    }
+}
+
 #[test]
 /// Source: https://mpra.ub.uni-muenchen.de/68939/1/MPRA_paper_68939.pdf
 fn numerical_example_2() {
-    let mut population = Population {
-        disease_compartments: DiseaseStates {
-            susceptible: 50.into(),
-            exposed: 0.into(),
-            //            infectious: 0,
-            infectious: 1.into(),
-            removed: 0.into(),
-            recovered: 0.into(),
-        },
-        infection_rate: 0.02,
-        recovery_rate: 0.5,
-    };
-
+    let mut population = create_sir_model(50., 1., 0.02, 0.5);
     println!(
         "{:<10} {:10} {:10} {:10} {:10}",
         "time", "Susceptible", "Infectious", "Removed", "Reproduction"
