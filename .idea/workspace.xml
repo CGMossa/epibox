@@ -7,8 +7,6 @@
     <list default="true" id="376c72a0-8c6b-44db-861e-15b1a79e9678" name="Default Changelist" comment="ty">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/disease.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/disease.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -209,10 +207,10 @@
       <screen x="62" y="0" width="2498" height="1440" />
     </state>
     <state width="895" height="526" key="javadoc.popup.new/62.0.2498.1440@62.0.2498.1440" timestamp="1579011891046" />
-    <state x="343" y="344" width="672" height="677" key="run.anything.popup" timestamp="1579012393472">
+    <state x="343" y="344" width="672" height="677" key="run.anything.popup" timestamp="1579013374686">
       <screen x="62" y="0" width="2498" height="1440" />
     </state>
-    <state x="343" y="344" width="672" height="677" key="run.anything.popup/62.0.2498.1440/2622.-513.1378.2560@62.0.2498.1440" timestamp="1579012393472" />
+    <state x="343" y="344" width="672" height="677" key="run.anything.popup/62.0.2498.1440/2622.-513.1378.2560@62.0.2498.1440" timestamp="1579013374686" />
     <state x="343" y="344" width="672" height="677" key="run.anything.popup/62.0.2498.1440@62.0.2498.1440" timestamp="1579011451886" />
     <state x="350" y="330" width="672" height="678" key="search.everywhere.popup" timestamp="1579012918469">
       <screen x="62" y="0" width="2498" height="1440" />
