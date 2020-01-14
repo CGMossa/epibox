@@ -1,1 +1,2 @@
-mod disease;
+mod population;
+//mod disease;
