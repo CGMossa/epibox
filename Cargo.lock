@@ -23,7 +23,6 @@ dependencies = [
 [[package]]
 name = "epibox"
 version = "0.1.0"
-
 dependencies = [
  "enum-iterator",
 ]
