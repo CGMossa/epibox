@@ -4,15 +4,9 @@ use std::fmt::{Display, Error, Formatter};
 type Count = f64;
 type Rate = f64;
 
-///
-/// This turned out to be a failed experiment. The expressions in the equation changes value, when
-/// we are to calculate them, due to them being coupled.
-///
-
 #[derive(Default)]
 struct Population {
     count: HashMap<DiseaseCompartment, Count>,
-    //    transitions: Vec<DiseaseTransition>,
     transitions: HashMap<DiseaseTransition, Box<dyn Fn(Count, Count) -> Rate>>,
     transition_parameters: HashMap<(DiseaseCompartment, DiseaseCompartment), DiseaseParameter>,
 }
@@ -65,13 +59,10 @@ impl Population {
             let from_count = *self.count.get(&transition.from).unwrap();
             let to_count = *self.count.get(&transition.to).unwrap();
             let from_diff = boxed_transition(from_count, to_count);
-            //            let to_diff = -from_diff;
+            //let to_diff = -from_diff;
 
-            //            dbg!((&transition.from, &transition.to));
-            //            dbg!((from_count, to_count), (from_diff, -from_diff));
-
-            *next_counts.entry(transition.from).or_default() = from_count + from_diff;
-            *next_counts.entry(transition.to).or_default() = to_count - from_diff;
+            *next_counts.entry(transition.from).or_default() += from_diff;
+            *next_counts.entry(transition.to).or_default() -= from_diff;
         }
         self.count = next_counts;
     }
@@ -108,9 +99,9 @@ fn building_a_sir_population() {
             Box::new(move |inf, _recover| -recovery_rate * inf),
         );
 
-    println!("{}", sir_population);
-    for time in 0..5 {
+    println!("time {:4} => {:}", 0, sir_population);
+    for time in 1..14 {
         sir_population.update_disease_states();
-        println!("time {} => {:.6}", time, sir_population);
+        println!("time {:4} => {:.6}", time, sir_population);
     }
 }
