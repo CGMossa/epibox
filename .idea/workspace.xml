@@ -6,7 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="376c72a0-8c6b-44db-861e-15b1a79e9678" name="Default Changelist" comment="ty">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/population.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/population.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/steady_state_models.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/steady_state_models.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -46,16 +46,18 @@
     <option name="myCommands">
       <command value="cargo run" />
       <command value="cargo clippy" />
-      <command value="cargo build" />
       <command value="cargo version" />
-      <command value="cargo test" />
+      <command value="cargo fmt" />
+      <command value="cargo checkk" />
       <command value="cargo check" />
+      <command value="cargo build" />
+      <command value="cargo test" />
     </option>
   </component>
-  <component name="RunManager" selected="Cargo Command.Test population::building_a_sir_population">
-    <configuration name="Expand epibox::population" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+  <component name="RunManager" selected="Cargo Command.Test steady_state_models::numerical_example_9_of_sir_model_2_vaccine">
+    <configuration name="Test steady_state_models::numerical_example_9_of_sir_model_2_hunting" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="channel" value="DEFAULT" />
-      <option name="command" value="expand --lib --color=always --theme=GitHub --tests population" />
+      <option name="command" value="test --package epibox --lib steady_state_models::numerical_example_9_of_sir_model_2_hunting -- --exact" />
       <option name="allFeatures" value="false" />
       <option name="nocapture" value="false" />
       <option name="emulateTerminal" value="false" />
@@ -66,9 +68,22 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test population::building_a_sir_population" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+    <configuration name="Test steady_state_models::numerical_example_9_of_sir_model_2_vaccine" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="channel" value="DEFAULT" />
-      <option name="command" value="test --package epibox --lib population::building_a_sir_population -- --exact" />
+      <option name="command" value="test --package epibox --lib steady_state_models::numerical_example_9_of_sir_model_2_vaccine -- --exact" />
+      <option name="allFeatures" value="false" />
+      <option name="nocapture" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="backtrace" value="SHORT" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="build" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="channel" value="DEFAULT" />
+      <option name="command" value="build" />
       <option name="allFeatures" value="false" />
       <option name="nocapture" value="false" />
       <option name="emulateTerminal" value="false" />
@@ -105,31 +120,17 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="version" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="channel" value="DEFAULT" />
-      <option name="command" value="version" />
-      <option name="allFeatures" value="false" />
-      <option name="nocapture" value="false" />
-      <option name="emulateTerminal" value="false" />
-      <option name="backtrace" value="SHORT" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <envs />
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Cargo Command.Test population::building_a_sir_population" />
+        <item itemvalue="Cargo Command.Test steady_state_models::numerical_example_9_of_sir_model_2_vaccine" />
+        <item itemvalue="Cargo Command.test" />
+        <item itemvalue="Cargo Command.build" />
         <item itemvalue="Cargo Command.check" />
-        <item itemvalue="Cargo Command.Expand epibox::population" />
-        <item itemvalue="Cargo Command.check" />
-        <item itemvalue="Cargo Command.check" />
+        <item itemvalue="Cargo Command.Test steady_state_models::numerical_example_9_of_sir_model_2_hunting" />
       </list>
     </recent_temporary>
   </component>
   <component name="RustProjectSettings">
-    <option name="runExternalLinterOnTheFly" value="true" />
     <option name="runRustfmtOnSave" value="true" />
     <option name="toolchainHomeDirectory" value="$USER_HOME$/.cargo/bin" />
     <option name="version" value="2" />
@@ -157,10 +158,10 @@
     <servers />
   </component>
   <component name="WindowStateProjectService">
-    <state x="954" y="366" key="#com.intellij.ide.util.MemberChooser" timestamp="1579039728712">
-      <screen x="93" y="0" width="3747" height="1200" />
+    <state x="636" y="439" key="#com.intellij.ide.util.MemberChooser" timestamp="1579533365866">
+      <screen x="62" y="0" width="2498" height="1440" />
     </state>
-    <state x="636" y="439" key="#com.intellij.ide.util.MemberChooser/62.0.2498.1440/2622.-513.1378.2560@62.0.2498.1440" timestamp="1579022882673" />
+    <state x="636" y="439" key="#com.intellij.ide.util.MemberChooser/62.0.2498.1440/2622.-513.1378.2560@62.0.2498.1440" timestamp="1579533365866" />
     <state x="636" y="439" key="#com.intellij.ide.util.MemberChooser/62.0.2498.1440@62.0.2498.1440" timestamp="1579010181148" />
     <state x="954" y="366" key="#com.intellij.ide.util.MemberChooser/93.0.3747.1200@93.0.3747.1200" timestamp="1579039728712" />
     <state x="340" y="317" key="CommitChangelistDialog2" timestamp="1579004785843">
@@ -171,31 +172,31 @@
       <screen x="62" y="0" width="2498" height="1440" />
     </state>
     <state x="582" y="406" key="ExperimentsDialog/62.0.2498.1440/2622.-513.1378.2560@62.0.2498.1440" timestamp="1579006313665" />
-    <state width="1280" height="870" key="GridCell.Tab.0.bottom" timestamp="1579082270824">
+    <state width="849" height="850" key="GridCell.Tab.0.bottom" timestamp="1579535438162">
       <screen x="62" y="0" width="2498" height="1440" />
     </state>
-    <state width="1280" height="870" key="GridCell.Tab.0.bottom/62.0.2498.1440/2622.-513.1378.2560@62.0.2498.1440" timestamp="1579082270824" />
+    <state width="849" height="850" key="GridCell.Tab.0.bottom/62.0.2498.1440/2622.-513.1378.2560@62.0.2498.1440" timestamp="1579535438162" />
     <state width="1002" height="870" key="GridCell.Tab.0.bottom/62.0.2498.1440@62.0.2498.1440" timestamp="1579011970799" />
     <state width="1445" height="231" key="GridCell.Tab.0.bottom/93.0.1443.864@93.0.1443.864" timestamp="1579035355253" />
     <state width="1066" height="1070" key="GridCell.Tab.0.bottom/93.0.3747.1200@93.0.3747.1200" timestamp="1579042757252" />
-    <state width="1280" height="870" key="GridCell.Tab.0.center" timestamp="1579082270824">
+    <state width="849" height="850" key="GridCell.Tab.0.center" timestamp="1579535438162">
       <screen x="62" y="0" width="2498" height="1440" />
     </state>
-    <state width="1280" height="870" key="GridCell.Tab.0.center/62.0.2498.1440/2622.-513.1378.2560@62.0.2498.1440" timestamp="1579082270824" />
+    <state width="849" height="850" key="GridCell.Tab.0.center/62.0.2498.1440/2622.-513.1378.2560@62.0.2498.1440" timestamp="1579535438162" />
     <state width="1002" height="870" key="GridCell.Tab.0.center/62.0.2498.1440@62.0.2498.1440" timestamp="1579011970799" />
     <state width="1445" height="231" key="GridCell.Tab.0.center/93.0.1443.864@93.0.1443.864" timestamp="1579035355253" />
     <state width="1066" height="1070" key="GridCell.Tab.0.center/93.0.3747.1200@93.0.3747.1200" timestamp="1579042757252" />
-    <state width="1280" height="870" key="GridCell.Tab.0.left" timestamp="1579082270824">
+    <state width="849" height="850" key="GridCell.Tab.0.left" timestamp="1579535438162">
       <screen x="62" y="0" width="2498" height="1440" />
     </state>
-    <state width="1280" height="870" key="GridCell.Tab.0.left/62.0.2498.1440/2622.-513.1378.2560@62.0.2498.1440" timestamp="1579082270824" />
+    <state width="849" height="850" key="GridCell.Tab.0.left/62.0.2498.1440/2622.-513.1378.2560@62.0.2498.1440" timestamp="1579535438162" />
     <state width="1002" height="870" key="GridCell.Tab.0.left/62.0.2498.1440@62.0.2498.1440" timestamp="1579011970799" />
     <state width="1445" height="231" key="GridCell.Tab.0.left/93.0.1443.864@93.0.1443.864" timestamp="1579035355253" />
     <state width="1066" height="1070" key="GridCell.Tab.0.left/93.0.3747.1200@93.0.3747.1200" timestamp="1579042757252" />
-    <state width="1280" height="870" key="GridCell.Tab.0.right" timestamp="1579082270824">
+    <state width="849" height="850" key="GridCell.Tab.0.right" timestamp="1579535438162">
       <screen x="62" y="0" width="2498" height="1440" />
     </state>
-    <state width="1280" height="870" key="GridCell.Tab.0.right/62.0.2498.1440/2622.-513.1378.2560@62.0.2498.1440" timestamp="1579082270824" />
+    <state width="849" height="850" key="GridCell.Tab.0.right/62.0.2498.1440/2622.-513.1378.2560@62.0.2498.1440" timestamp="1579535438162" />
     <state width="1002" height="870" key="GridCell.Tab.0.right/62.0.2498.1440@62.0.2498.1440" timestamp="1579011970799" />
     <state width="1445" height="231" key="GridCell.Tab.0.right/93.0.1443.864@93.0.1443.864" timestamp="1579035355253" />
     <state width="1066" height="1070" key="GridCell.Tab.0.right/93.0.3747.1200@93.0.3747.1200" timestamp="1579042757252" />
@@ -207,24 +208,24 @@
       <screen x="62" y="0" width="2498" height="1440" />
     </state>
     <state x="529" y="455" width="606" height="536" key="find.popup/62.0.2498.1440@62.0.2498.1440" timestamp="1579008524333" />
-    <state width="1346" height="439" key="javadoc.popup.new" timestamp="1579040625889">
-      <screen x="93" y="0" width="3747" height="1200" />
+    <state width="895" height="526" key="javadoc.popup.new" timestamp="1579531406297">
+      <screen x="62" y="0" width="2498" height="1440" />
     </state>
-    <state width="895" height="526" key="javadoc.popup.new/62.0.2498.1440/2622.-513.1378.2560@62.0.2498.1440" timestamp="1579023592426" />
+    <state width="895" height="526" key="javadoc.popup.new/62.0.2498.1440/2622.-513.1378.2560@62.0.2498.1440" timestamp="1579531406297" />
     <state width="895" height="526" key="javadoc.popup.new/62.0.2498.1440@62.0.2498.1440" timestamp="1579011891046" />
     <state width="518" height="316" key="javadoc.popup.new/93.0.1443.864@93.0.1443.864" timestamp="1579035489074" />
     <state width="1346" height="439" key="javadoc.popup.new/93.0.3747.1200@93.0.3747.1200" timestamp="1579040625889" />
-    <state x="511" y="286" width="1745" height="566" key="run.anything.popup" timestamp="1579042718780">
-      <screen x="93" y="0" width="3747" height="1200" />
+    <state x="343" y="344" width="672" height="677" key="run.anything.popup" timestamp="1579535169105">
+      <screen x="62" y="0" width="2498" height="1440" />
     </state>
-    <state x="343" y="344" width="672" height="677" key="run.anything.popup/62.0.2498.1440/2622.-513.1378.2560@62.0.2498.1440" timestamp="1579024423876" />
+    <state x="343" y="344" width="672" height="677" key="run.anything.popup/62.0.2498.1440/2622.-513.1378.2560@62.0.2498.1440" timestamp="1579535169105" />
     <state x="343" y="344" width="672" height="677" key="run.anything.popup/62.0.2498.1440@62.0.2498.1440" timestamp="1579011451886" />
     <state x="254" y="206" width="672" height="407" key="run.anything.popup/93.0.1443.864@93.0.1443.864" timestamp="1579035314092" />
     <state x="511" y="286" width="1745" height="566" key="run.anything.popup/93.0.3747.1200@93.0.3747.1200" timestamp="1579042718780" />
-    <state x="350" y="330" width="672" height="678" key="search.everywhere.popup" timestamp="1579081626043">
+    <state x="350" y="330" width="672" height="678" key="search.everywhere.popup" timestamp="1579532736203">
       <screen x="62" y="0" width="2498" height="1440" />
     </state>
-    <state x="350" y="330" width="672" height="678" key="search.everywhere.popup/62.0.2498.1440/2622.-513.1378.2560@62.0.2498.1440" timestamp="1579081626043" />
+    <state x="350" y="330" width="672" height="678" key="search.everywhere.popup/62.0.2498.1440/2622.-513.1378.2560@62.0.2498.1440" timestamp="1579532736203" />
     <state x="350" y="330" width="672" height="678" key="search.everywhere.popup/62.0.2498.1440@62.0.2498.1440" timestamp="1579010917294" />
     <state x="525" y="275" width="1008" height="565" key="search.everywhere.popup/93.0.3747.1200@93.0.3747.1200" timestamp="1579040954152" />
   </component>

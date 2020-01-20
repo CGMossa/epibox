@@ -25,6 +25,8 @@ struct SteadyStateSIRModelParameters {
     alpha: Rate,
     beta: Rate,
     delta: Rate,
+    h: Rate,
+    v: Rate,
 }
 
 struct SteadyStateSIRModel {
@@ -46,6 +48,8 @@ impl SteadyStateSIRModel {
                 alpha: 0.0,
                 beta: 0.0,
                 delta: 0.0,
+                h: 0.0,
+                v: 0.0,
             },
             initial_population: Population {
                 population: susceptible + infected,
@@ -67,6 +71,8 @@ impl SteadyStateSIRModel {
             alpha,
             beta,
             delta,
+            h,
+            v,
         } = self.parameters;
         #[allow(non_snake_case)]
         let N = self.initial_population.population;
@@ -88,6 +94,13 @@ impl SteadyStateSIRModel {
             let diff_susceptible = m * N - m * susceptible - alpha * susceptible * infected;
             let diff_infected = alpha * susceptible * infected - (m + delta + beta) * infected;
             let diff_recovered = beta * infected - m * recovered;
+
+            let diff_susceptible = diff_susceptible - h * susceptible;
+            let diff_infected = diff_infected - h * infected;
+            let diff_recovered = diff_recovered - h * recovered;
+
+            let diff_susceptible = diff_susceptible - v * susceptible;
+            let diff_recovered = diff_recovered + v * recovered;
 
             susceptible += diff_susceptible;
             infected += diff_infected;
@@ -124,7 +137,7 @@ impl Display for DiseaseState {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         write!(
             f,
-            "Sus. = {:<10.5} Inf. = {:<10.5} Rec. = {:<10.5}",
+            "Sus. = {:<10.6} Inf. = {:<10.6} Rec. = {:<10.6}",
             self.susceptible, self.infected, self.recovered
         )?;
         Ok(())
@@ -133,10 +146,19 @@ impl Display for DiseaseState {
 
 impl Display for SteadyStateSIRModelParameters {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
+        let SteadyStateSIRModelParameters {
+            m,
+            alpha,
+            beta,
+            delta,
+            h,
+            v,
+        } = self;
+
         write!(
             f,
-            "alpha = {}, beta = {}, delta = {}, m = {}",
-            self.alpha, self.beta, self.delta, self.m
+            "alpha = {}, beta = {}, delta = {}, m = {}, h = {}, v = {}",
+            alpha, beta, delta, m, h, v
         )?;
 
         Ok(())
@@ -164,6 +186,44 @@ fn numerical_example_7_of_sir_model_2() {
             alpha: 0.02,
             beta: 0.5,
             delta: 0.1,
+            h: 0.0,
+            v: 0.0,
+        });
+
+    model.update(13);
+
+    println!("{}", model);
+}
+
+/// Source: [](https://mpra.ub.uni-muenchen.de/68939/1/MPRA_paper_68939.pdf)
+#[test]
+fn numerical_example_9_of_sir_model_2_hunting() {
+    let mut model =
+        SteadyStateSIRModel::new(50., 1.).set_disease_parameters(SteadyStateSIRModelParameters {
+            m: 0.0001,
+            alpha: 0.02,
+            beta: 0.5,
+            delta: 0.1,
+            h: 0.1,
+            v: 0.0,
+        });
+
+    model.update(13);
+
+    println!("{}", model);
+}
+
+/// Source: [](https://mpra.ub.uni-muenchen.de/68939/1/MPRA_paper_68939.pdf)
+#[test]
+fn numerical_example_9_of_sir_model_2_vaccine() {
+    let mut model =
+        SteadyStateSIRModel::new(50., 1.).set_disease_parameters(SteadyStateSIRModelParameters {
+            m: 0.0001,
+            alpha: 0.02,
+            beta: 0.5,
+            delta: 0.1,
+            h: 0.,
+            v: 0.095,
         });
 
     model.update(13);
