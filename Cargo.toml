@@ -8,4 +8,5 @@ edition = "2018"
 
 [dependencies]
 #enum_variant_type = "0.2.0"
-enum-iterator = "0.5.0"
+#enum-iterator = "0.5.0" #used to get the number of variants in an enum
+legion = "0.2.1"
