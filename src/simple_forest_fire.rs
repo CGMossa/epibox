@@ -157,6 +157,7 @@ fn percolation_one_at_a_time() {
     );
 }
 
+#[test]
 fn percolation_bunch() {
     for grid_size in vec![20, 50, 100] {
         for tree_density in vec![0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9] {
@@ -172,35 +173,6 @@ fn percolation_bunch() {
         }
     }
 }
-
-//struct Trace {
-//    steps: Vec<Universe>,
-//}
-//
-//struct Simulations {
-//    repetitions: Vec<Trace>,
-//}
-//
-//impl Simulations {
-//    fn run(&self, size: usize, probability: f64) {
-//        let mut simulation_run = Trace { steps: vec![] };
-//
-//        let mut simple_universe = Universe::new(10, 0.5);
-//        simple_universe.cells.column_mut(0).fill(State::Burning);
-//
-//        loop {
-//            simulation_run.steps.push(simple_universe.clone());
-//            //            println!("{}", simple_universe.cells);
-//            simple_universe.update();
-//
-//            if simple_universe.no_fire() {
-//                simulation_run.steps.push(simple_universe.clone());
-//                //                println!("{}", simple_universe.cells);
-//                break;
-//            }
-//        }
-//    }
-//}
 
 #[test]
 fn checking_out_ndarray_for_lattice() {
