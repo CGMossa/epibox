@@ -6,7 +6,18 @@ edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[dev-dependencies]
+criterion = "0.3.0"
+
+[[bench]]
+name = "simple_forest_fire_bench"
+harness = false
+
+
 [dependencies]
 #enum_variant_type = "0.2.0"
 #enum-iterator = "0.5.0" #used to get the number of variants in an enum
 legion = "0.2.1"
+ndarray = "0.13.0"
+ndarray-rand = "0.11.0"
+itertools = "0.8.2"
