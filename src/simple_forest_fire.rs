@@ -6,27 +6,26 @@ use std::fmt::{Display, Error, Formatter};
 ///! Source: [Assignment 1](http://prac.im.pwr.wroc.pl/~szwabin/assets/abm/labs/l1.pdf)
 
 #[derive(Debug, Clone)]
-struct Forrest {
-    cells: ndarray::Array2<State>,
+pub struct Forrest {
+    cells: ndarray::Array2<TreeState>,
     vegetation_probability: f64,
     size: usize,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-enum State {
-    Empty,
+pub enum TreeState {
+    None,
     Tree,
     Burning,
 }
 
 impl Forrest {
-    fn new(size: usize, probability: f64) -> Self {
+    pub(crate) fn new(size: usize, probability: f64) -> Self {
         let sampler = ndarray_rand::rand_distr::Bernoulli::new(probability)
             .expect("given probability argument is not valid");
 
         let cells = Array2::random((size, size), sampler);
-        let cells = cells.mapv(|x| if x { State::Tree } else { State::Empty });
-        //        cells.par_mapv_inplace(|x| State::from(x));
+        let cells = cells.mapv(|x| if x { TreeState::Tree } else { TreeState::None });
 
         Self {
             cells,
@@ -34,10 +33,20 @@ impl Forrest {
             size,
         }
     }
+
+    pub fn cells(&self) -> &Array2<TreeState> {
+        &self.cells
+    }
+
+    pub(crate) fn no_clusters(&self) -> usize {
+        hoshen_kopelman::Raster::from(self.clone())
+            .raster_scan()
+            .no_clusters()
+    }
     fn no_fire(&self) -> bool {
         let mut no_fire = true;
         self.cells.visit(|x| {
-            if let State::Burning = x {
+            if let TreeState::Burning = x {
                 no_fire = false;
                 return;
             }
@@ -47,15 +56,15 @@ impl Forrest {
     fn update(&mut self) {
         // it is only necessary to count the neighbours of cells with trees in them.
         let mut new_cells = self.cells.mapv(|cell| {
-            if let State::Burning = cell {
-                State::Empty
+            if let TreeState::Burning = cell {
+                TreeState::None
             } else {
                 cell
             }
         });
 
         for ((r, c), cell) in new_cells.indexed_iter_mut() {
-            if let State::Tree = cell {
+            if let TreeState::Tree = cell {
                 let r_start = if r == 0 { r } else { r - 1 };
                 for r_neigh in r_start..r + 2 {
                     let c_start = if c == 0 { c } else { c - 1 };
@@ -63,8 +72,8 @@ impl Forrest {
                         if (r_neigh, c_neigh) == (r, c) {
                             continue;
                         }
-                        if let Some(State::Burning) = self.cells.get((r_neigh, c_neigh)) {
-                            *cell = State::Burning;
+                        if let Some(TreeState::Burning) = self.cells.get((r_neigh, c_neigh)) {
+                            *cell = TreeState::Burning;
                         }
                     }
                 }
@@ -75,25 +84,25 @@ impl Forrest {
     }
 }
 
-impl Default for State {
+impl Default for TreeState {
     fn default() -> Self {
-        Self::Empty
+        TreeState::None
     }
 }
 
-impl Display for State {
+impl Display for TreeState {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         write!(
             f,
             "{}",
             match self {
-                State::Empty => {
+                TreeState::None => {
                     " "
                 }
-                State::Tree => {
+                TreeState::Tree => {
                     "T"
                 }
-                State::Burning => {
+                TreeState::Burning => {
                     "!"
                 }
             }
@@ -122,8 +131,8 @@ pub fn percolation_threshold(grid_size: usize, tree_density: f64, max_iter: usiz
             //        println!("Initial grid: \n {}", run.cells);
 
             run.cells.column_mut(0).mapv_inplace(|x| {
-                if let State::Tree = x {
-                    State::Burning
+                if let TreeState::Tree = x {
+                    TreeState::Burning
                 } else {
                     x
                 }
@@ -136,7 +145,7 @@ pub fn percolation_threshold(grid_size: usize, tree_density: f64, max_iter: usiz
                     .cells
                     .column(run.cells.ncols() - 1) // get rightmost column
                     .iter()
-                    .any(|x| x == &State::Burning);
+                    .any(|x| x == &TreeState::Burning);
                 if flag_rightside_burning {
                     //                println!("Right-side trees burning: \n {}", run.cells);
                     //                    fire_pass_throughs += 1;
@@ -191,7 +200,7 @@ fn checking_out_ndarray_for_lattice() {
     //    let simple_grid = ndarray::Array2::<State>::default((grid_size, grid_size));
 
     let mut simple_universe = Forrest::new(grid_size, 0.5);
-    simple_universe.cells.column_mut(0).fill(State::Burning);
+    simple_universe.cells.column_mut(0).fill(TreeState::Burning);
 
     loop {
         println!("{}", simple_universe.cells);
@@ -234,17 +243,17 @@ mod hoshen_kopelman {
     }
 
     type Label = usize;
-    struct Raster {
+    pub(crate) struct Raster {
         occupied: Array2<bool>,
         label: Array2<Label>,
     }
 
     impl Raster {
-        fn no_clusters(&self) -> usize {
+        pub(crate) fn no_clusters(&self) -> usize {
             self.label.fold(0usize, |acc, x| acc.max(*x))
         }
 
-        fn raster_scan(&mut self) {
+        pub(crate) fn raster_scan(&mut self) -> &Self {
             let mut largest_label = 0usize;
             for ((x, y), occupied) in self.occupied.indexed_iter() {
                 if !occupied {
@@ -289,6 +298,8 @@ mod hoshen_kopelman {
                     }
                 }
             }
+
+            self
         }
     }
 
@@ -296,9 +307,9 @@ mod hoshen_kopelman {
         fn from(u: Forrest) -> Self {
             Self {
                 occupied: u.cells.mapv(|x| match x {
-                    super::State::Tree => true,
-                    super::State::Burning => false,
-                    super::State::Empty => false,
+                    super::TreeState::Tree => true,
+                    super::TreeState::Burning => false,
+                    super::TreeState::None => false,
                 }),
                 label: Array2::<usize>::zeros(u.cells.dim()),
             }
