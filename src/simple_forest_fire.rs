@@ -1,5 +1,6 @@
 use ndarray::Array2;
 use ndarray_rand::RandomExt;
+use rayon::prelude::*;
 use std::fmt::{Display, Error, Formatter};
 
 ///! Source: [Assignment 1](http://prac.im.pwr.wroc.pl/~szwabin/assets/abm/labs/l1.pdf)
@@ -110,7 +111,11 @@ impl Display for State {
 pub fn percolation_threshold(grid_size: usize, tree_density: f64, max_iter: usize) -> f64 {
     let mut fire_pass_throughs = 0usize;
 
-    for _repetition in 0..max_iter {
+    //    for _repetition in 0..max_iter {
+    (0..max_iter)
+        .collect::<Vec<_>>()
+        .par_iter()
+        .map(move |_| {
         let mut run = Universe::new(grid_size, tree_density);
         //        println!("Initial grid: \n {}", run.cells);
 
@@ -132,16 +137,20 @@ pub fn percolation_threshold(grid_size: usize, tree_density: f64, max_iter: usiz
                 .any(|x| x == &State::Burning);
             if flag_rightside_burning {
                 //                println!("Right-side trees burning: \n {}", run.cells);
-                fire_pass_throughs += 1;
-                break;
+                    //                    fire_pass_throughs += 1;
+                    return 1;
+                    //                    break;
             }
             if run.no_fire() {
                 //                println!("Fire stopped: \n {}", run.cells);
                 break;
             }
         }
-    }
-    fire_pass_throughs as f64 / max_iter as f64
+            0
+        })
+        .sum::<u64>() as f64
+        / max_iter as f64
+    //    fire_pass_throughs as f64 / max_iter as f64
 }
 
 #[test]
