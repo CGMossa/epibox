@@ -116,36 +116,36 @@ pub fn percolation_threshold(grid_size: usize, tree_density: f64, max_iter: usiz
         .collect::<Vec<_>>()
         .par_iter()
         .map(move |_| {
-        let mut run = Universe::new(grid_size, tree_density);
-        //        println!("Initial grid: \n {}", run.cells);
+            let mut run = Universe::new(grid_size, tree_density);
+            //        println!("Initial grid: \n {}", run.cells);
 
-        run.cells.column_mut(0).mapv_inplace(|x| {
-            if let State::Tree = x {
-                State::Burning
-            } else {
-                x
-            }
-        });
-        //        println!("Left-side trees burning: \n {}", run.cells);
+            run.cells.column_mut(0).mapv_inplace(|x| {
+                if let State::Tree = x {
+                    State::Burning
+                } else {
+                    x
+                }
+            });
+            //        println!("Left-side trees burning: \n {}", run.cells);
 
-        loop {
-            run.update();
-            let flag_rightside_burning = run
-                .cells
-                .column(run.cells.ncols() - 1) // get rightmost column
-                .iter()
-                .any(|x| x == &State::Burning);
-            if flag_rightside_burning {
-                //                println!("Right-side trees burning: \n {}", run.cells);
+            loop {
+                run.update();
+                let flag_rightside_burning = run
+                    .cells
+                    .column(run.cells.ncols() - 1) // get rightmost column
+                    .iter()
+                    .any(|x| x == &State::Burning);
+                if flag_rightside_burning {
+                    //                println!("Right-side trees burning: \n {}", run.cells);
                     //                    fire_pass_throughs += 1;
                     return 1;
                     //                    break;
+                }
+                if run.no_fire() {
+                    //                println!("Fire stopped: \n {}", run.cells);
+                    break;
+                }
             }
-            if run.no_fire() {
-                //                println!("Fire stopped: \n {}", run.cells);
-                break;
-            }
-        }
             0
         })
         .sum::<u64>() as f64
