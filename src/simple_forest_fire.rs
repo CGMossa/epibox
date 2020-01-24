@@ -166,6 +166,7 @@ fn percolation_one_at_a_time() {
     );
 }
 
+#[test]
 fn percolation_bunch() {
     for grid_size in vec![20, 50, 100] {
         for tree_density in vec![0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9] {
@@ -219,42 +220,80 @@ fn examples() {
     // run this simulation for multiple p's.
 }
 
-fn hoshen_kopelman() {
-    //    Raster Scan and Labeling on the Grid
-    //    largest_label = 0;
-    //    for x in 0 to n_columns {
-    //        for y in 0 to n_rows {
-    //        if occupied[x, y] then
-    //    left = occupied[x-1, y];
-    //    above = occupied[x, y-1];
-    //    if (left == 0) and (above == 0) then /* Neither a label above nor to the left. */
-    //    largest_label = largest_label + 1; /* Make a new, as-yet-unused cluster label. */
-    //    label[x, y] = largest_label;
-    //    else if (left != 0) and (above == 0) then /* One neighbor, to the left. */
-    //    label[x, y] = find(left);
-    //    else if (left == 0) and (above != 0) then /* One neighbor, above. */
-    //    label[x, y] = find(above);
-    //    else /* Neighbors BOTH to the left and above. */
-    //    union(left,above); /* Link the left and above clusters. */
-    //    label[x, y] = find(left);
-    //}
-    //}
-    //
-    //Union
-    //void union(int x, int y)  {
-    //  labels[find(x)] = find(y);
-    //}
-    //
-    //Find
-    //int find(int x)  {
-    //int y = x;
-    //while (labels[y] != y)
-    //y = labels[y];
-    //while (labels[x] != x)  {
-    //int z = labels[x];
-    //labels[x] = y;
-    //x = z;
-    //}
-    //return y;
-    //}
+mod hoshen_kopelman {
+    use crate::simple_forest_fire::Universe;
+    use ndarray::{Array2, ArrayBase};
+
+    struct Clustering {
+        occupied: Array2<bool>,
+        labels: Vec<i32>,
+        label: Array2<i32>,
+    }
+
+    impl From<Universe> for Clustering {
+        fn from(u: Universe) -> Self {
+            Self {
+                occupied: u.cells.mapv(|x| match x {
+                    super::State::Tree => true,
+                    super::State::Burning => false,
+                    super::State::Empty => false,
+                }),
+                labels: vec![],
+                label: Array2::<i32>::zeros(u.cells.dim()),
+            }
+        }
+    }
+
+    impl Clustering {
+        fn new(occupied: Array2<bool>) -> Self {
+            todo!()
+        }
+        fn raster_scan(&self, n_rows: usize, n_columns: usize) {
+            let mut largest_label = 0;
+            let label = &self.label;
+            let occupied = &self.occupied;
+
+            for x in 0..n_columns {
+                for y in 0..n_rows {
+                    if !occupied.uget((x, y)) {
+                        continue;
+                    }
+                    let left = *occupied.uget((x - 1, y));
+                    let above = *occupied.uget((x, y - 1));
+                    if (left == false) & (above == false) {
+                        // Neither a label above nor to the left
+                        largest_label += 1;
+                        *label.uget_mut((x, y)) = largest_label;
+                    } else if (left != false) & (above == false) {
+                        *label.uget_mut((x, y)) = self.find(left);
+                    } else if (left == false) & (above != false) {
+                        *label.uget_mut((x, y)) = self.find(above);
+                    } else {
+                        self.union(left, above);
+                        *label.uget_mut((x, y)) = self.find(left);
+                    }
+                }
+            }
+        }
+
+        fn union(&self, x: i32, y: i32) {
+            self.labels[self.find(x)] = self.find(y);
+        }
+
+        fn find(&self, mut x: i32) {
+            let labels = &self.labels;
+            let mut y = x;
+            while labels[y] != y {
+                y = labels[y];
+            }
+            while labels[x] != x {
+                let z = labels[x];
+                labels[x] = y;
+                x = z;
+            }
+            return y;
+        }
+    }
 }
+
+fn hoshen_kopelman() {}
