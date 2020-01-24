@@ -5,10 +5,6 @@ use std::fmt::{Display, Error, Formatter};
 
 ///! Source: [Assignment 1](http://prac.im.pwr.wroc.pl/~szwabin/assets/abm/labs/l1.pdf)
 
-//struct SquareLattice<CellType> {
-//    x: PhantomData<CellType>,
-//}
-
 #[derive(Debug, Clone)]
 struct Universe {
     cells: ndarray::Array2<State>,
@@ -30,6 +26,7 @@ impl Universe {
 
         let cells = Array2::random((size, size), sampler);
         let cells = cells.mapv(|x| if x { State::Tree } else { State::Empty });
+        //        cells.par_mapv_inplace(|x| State::from(x));
 
         Self {
             cells,
@@ -42,12 +39,13 @@ impl Universe {
         self.cells.visit(|x| {
             if let State::Burning = x {
                 no_fire = false;
+                return;
             }
         });
         no_fire
     }
     fn update(&mut self) {
-        // it is only neccessary to count the neighbours of cells with trees in them.
+        // it is only necessary to count the neighbours of cells with trees in them.
         let mut new_cells = self.cells.mapv(|cell| {
             if let State::Burning = cell {
                 State::Empty
@@ -58,9 +56,9 @@ impl Universe {
 
         for ((r, c), cell) in new_cells.indexed_iter_mut() {
             if let State::Tree = cell {
-                let r_start = if r == 0 { 0 } else { r - 1 };
+                let r_start = if r == 0 { r } else { r - 1 };
                 for r_neigh in r_start..r + 2 {
-                    let c_start = if c == 0 { 0 } else { c - 1 };
+                    let c_start = if c == 0 { c } else { c - 1 };
                     for c_neigh in c_start..r + 2 {
                         if (r_neigh, c_neigh) == (r, c) {
                             continue;
@@ -108,14 +106,18 @@ impl Display for State {
 /// percolation threshold, i.e. a probability that the fire will cross from one size to another.
 /// Initially, only trees are set on fire, from the left most column and if a fire reaches the
 /// right most column, then it is counted.
+///
+/// # Note
+/// This procedure is currently using rayon. It is 8% slower when running only with `max_iter=1`, and
+/// thus it is recommended to make a version that only does single-runs if needed elsewhere.
 pub fn percolation_threshold(grid_size: usize, tree_density: f64, max_iter: usize) -> f64 {
-    let mut fire_pass_throughs = 0usize;
+    //    let mut fire_pass_throughs = 0usize;
 
     //    for _repetition in 0..max_iter {
     (0..max_iter)
         .collect::<Vec<_>>()
         .par_iter()
-        .map(move |_| {
+        .map(|_| {
             let mut run = Universe::new(grid_size, tree_density);
             //        println!("Initial grid: \n {}", run.cells);
 
@@ -185,10 +187,10 @@ fn percolation_bunch() {
 
 #[test]
 fn checking_out_ndarray_for_lattice() {
-    let L = 10;
-    let simple_grid = ndarray::Array2::<State>::default((L, L));
+    let grid_size = 10;
+    //    let simple_grid = ndarray::Array2::<State>::default((grid_size, grid_size));
 
-    let mut simple_universe = Universe::new(10, 0.5);
+    let mut simple_universe = Universe::new(grid_size, 0.5);
     simple_universe.cells.column_mut(0).fill(State::Burning);
 
     loop {
@@ -212,6 +214,7 @@ fn checking_out_ndarray_for_lattice() {
 }
 
 #[test]
+#[ignore]
 fn examples() {
     //    let L = 20;
     //    let L = 50;
@@ -222,15 +225,70 @@ fn examples() {
 
 mod hoshen_kopelman {
     use crate::simple_forest_fire::Universe;
-    use ndarray::{Array2, ArrayBase};
+    use ndarray::Array2;
 
     struct Clustering {
         occupied: Array2<bool>,
-        labels: Vec<i32>,
-        label: Array2<i32>,
+        labels: Vec<usize>,
+        label: Array2<usize>,
     }
 
-    impl From<Universe> for Clustering {
+    type Label = usize;
+    struct Raster {
+        occupied: Array2<bool>,
+        label: Array2<Label>,
+    }
+
+    impl Raster {
+        fn raster_scan(&mut self) {
+            let mut largest_label = 0usize;
+            for ((x, y), occupied) in self.occupied.indexed_iter() {
+                if !occupied {
+                    continue;
+                }
+                if !self.occupied.get((x, y)).unwrap() {
+                    continue;
+                }
+                let left = if y == 0 {
+                    0usize
+                } else {
+                    *self.label.get((x, y - 1)).unwrap()
+                };
+                let above = if x == 0 {
+                    0usize
+                } else {
+                    *self.label.get((x - 1, y)).unwrap()
+                };
+
+                match (left != 0, above != 0) {
+                    (false, false) => {
+                        largest_label += 1;
+                        *self.label.get_mut((x, y)).unwrap() = largest_label;
+                    }
+                    (false, true) => {
+                        *self.label.get_mut((x, y)).unwrap() = above;
+                    }
+                    (true, false) => {
+                        *self.label.get_mut((x, y)).unwrap() = left;
+                    }
+                    (true, true) => {
+                        let (lower, upper) = if left <= above {
+                            (left, above)
+                        } else {
+                            (above, left)
+                        };
+                        if lower != upper {
+                            self.label
+                                .par_mapv_inplace(|x| if x == upper { lower } else { x });
+                        }
+                        *self.label.get_mut((x, y)).unwrap() = lower;
+                    }
+                }
+            }
+        }
+    }
+
+    impl From<Universe> for Raster {
         fn from(u: Universe) -> Self {
             Self {
                 occupied: u.cells.mapv(|x| match x {
@@ -238,62 +296,18 @@ mod hoshen_kopelman {
                     super::State::Burning => false,
                     super::State::Empty => false,
                 }),
-                labels: vec![],
-                label: Array2::<i32>::zeros(u.cells.dim()),
+                label: Array2::<usize>::zeros(u.cells.dim()),
             }
         }
     }
 
-    impl Clustering {
-        fn new(occupied: Array2<bool>) -> Self {
-            todo!()
-        }
-        fn raster_scan(&self, n_rows: usize, n_columns: usize) {
-            let mut largest_label = 0;
-            let label = &self.label;
-            let occupied = &self.occupied;
+    #[test]
+    fn hoshen_kopelman_examples() {
+        let forrest = Universe::new(10, 0.3);
+        println!("Forrest: \n{:<2}", forrest.cells);
+        let mut cluster_example = Raster::from(forrest.clone());
 
-            for x in 0..n_columns {
-                for y in 0..n_rows {
-                    if !occupied.uget((x, y)) {
-                        continue;
-                    }
-                    let left = *occupied.uget((x - 1, y));
-                    let above = *occupied.uget((x, y - 1));
-                    if (left == false) & (above == false) {
-                        // Neither a label above nor to the left
-                        largest_label += 1;
-                        *label.uget_mut((x, y)) = largest_label;
-                    } else if (left != false) & (above == false) {
-                        *label.uget_mut((x, y)) = self.find(left);
-                    } else if (left == false) & (above != false) {
-                        *label.uget_mut((x, y)) = self.find(above);
-                    } else {
-                        self.union(left, above);
-                        *label.uget_mut((x, y)) = self.find(left);
-                    }
-                }
-            }
-        }
-
-        fn union(&self, x: i32, y: i32) {
-            self.labels[self.find(x)] = self.find(y);
-        }
-
-        fn find(&self, mut x: i32) {
-            let labels = &self.labels;
-            let mut y = x;
-            while labels[y] != y {
-                y = labels[y];
-            }
-            while labels[x] != x {
-                let z = labels[x];
-                labels[x] = y;
-                x = z;
-            }
-            return y;
-        }
+        cluster_example.raster_scan();
+        println!("Clusters: \n{:<2}", cluster_example.label);
     }
 }
-
-fn hoshen_kopelman() {}
