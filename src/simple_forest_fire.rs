@@ -240,6 +240,10 @@ mod hoshen_kopelman {
     }
 
     impl Raster {
+        fn no_clusters(&self) -> usize {
+            self.label.fold(0usize, |acc, x| acc.max(*x))
+        }
+
         fn raster_scan(&mut self) {
             let mut largest_label = 0usize;
             for ((x, y), occupied) in self.occupied.indexed_iter() {
@@ -303,11 +307,12 @@ mod hoshen_kopelman {
 
     #[test]
     fn hoshen_kopelman_examples() {
-        let forrest = Forrest::new(10, 0.3);
+        let forrest = Forrest::new(10, 0.5);
         println!("Forrest: \n{:<2}", forrest.cells);
         let mut cluster_example = Raster::from(forrest.clone());
 
         cluster_example.raster_scan();
         println!("Clusters: \n{:<2}", cluster_example.label);
+        println!("No. of clusters: {:}", cluster_example.no_clusters());
     }
 }
