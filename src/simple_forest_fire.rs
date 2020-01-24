@@ -6,7 +6,7 @@ use std::fmt::{Display, Error, Formatter};
 ///! Source: [Assignment 1](http://prac.im.pwr.wroc.pl/~szwabin/assets/abm/labs/l1.pdf)
 
 #[derive(Debug, Clone)]
-struct Universe {
+struct Forrest {
     cells: ndarray::Array2<State>,
     vegetation_probability: f64,
     size: usize,
@@ -19,7 +19,7 @@ enum State {
     Burning,
 }
 
-impl Universe {
+impl Forrest {
     fn new(size: usize, probability: f64) -> Self {
         let sampler = ndarray_rand::rand_distr::Bernoulli::new(probability)
             .expect("given probability argument is not valid");
@@ -118,7 +118,7 @@ pub fn percolation_threshold(grid_size: usize, tree_density: f64, max_iter: usiz
         .collect::<Vec<_>>()
         .par_iter()
         .map(|_| {
-            let mut run = Universe::new(grid_size, tree_density);
+            let mut run = Forrest::new(grid_size, tree_density);
             //        println!("Initial grid: \n {}", run.cells);
 
             run.cells.column_mut(0).mapv_inplace(|x| {
@@ -190,7 +190,7 @@ fn checking_out_ndarray_for_lattice() {
     let grid_size = 10;
     //    let simple_grid = ndarray::Array2::<State>::default((grid_size, grid_size));
 
-    let mut simple_universe = Universe::new(grid_size, 0.5);
+    let mut simple_universe = Forrest::new(grid_size, 0.5);
     simple_universe.cells.column_mut(0).fill(State::Burning);
 
     loop {
@@ -224,7 +224,7 @@ fn examples() {
 }
 
 mod hoshen_kopelman {
-    use crate::simple_forest_fire::Universe;
+    use crate::simple_forest_fire::Forrest;
     use ndarray::Array2;
 
     struct Clustering {
@@ -288,8 +288,8 @@ mod hoshen_kopelman {
         }
     }
 
-    impl From<Universe> for Raster {
-        fn from(u: Universe) -> Self {
+    impl From<Forrest> for Raster {
+        fn from(u: Forrest) -> Self {
             Self {
                 occupied: u.cells.mapv(|x| match x {
                     super::State::Tree => true,
@@ -303,7 +303,7 @@ mod hoshen_kopelman {
 
     #[test]
     fn hoshen_kopelman_examples() {
-        let forrest = Universe::new(10, 0.3);
+        let forrest = Forrest::new(10, 0.3);
         println!("Forrest: \n{:<2}", forrest.cells);
         let mut cluster_example = Raster::from(forrest.clone());
 
