@@ -1,6 +1,7 @@
 use ndarray::Array2;
 use ndarray_rand::RandomExt;
 use rayon::prelude::*;
+use std::collections::HashMap;
 use std::fmt::{Display, Error, Formatter};
 
 ///! Source: [Assignment 1](http://prac.im.pwr.wroc.pl/~szwabin/assets/abm/labs/l1.pdf)
@@ -38,11 +39,29 @@ impl Forrest {
         &self.cells
     }
 
+    /// TODO: Add an argument so we can count [`TreeState::Burning`] as well as [`TreeState::Tree`].
     pub(crate) fn no_clusters(&self) -> usize {
         hoshen_kopelman::Raster::from(self.clone())
             .raster_scan()
             .no_clusters()
     }
+
+    pub(crate) fn cluster_sizes(&self) -> HashMap<usize, usize> {
+        hoshen_kopelman::Raster::from(self.clone())
+            .raster_scan()
+            .labels_array()
+            .fold(HashMap::new(), |mut acc, cluster_label| {
+                *acc.entry(*cluster_label).or_insert(0) += 1;
+                acc
+            })
+
+        //        (1..=self.no_clusters())
+        //            .map(|cluster_label| {
+        //
+        //            }).collect()
+    }
+
+    /// Returns true if there are no more cells with [`TreeState::Burning`].
     fn no_fire(&self) -> bool {
         let mut no_fire = true;
         self.cells.visit(|x| {
@@ -178,6 +197,7 @@ fn percolation_one_at_a_time() {
 }
 
 #[test]
+#[ignore]
 fn percolation_bunch() {
     for grid_size in vec![20, 50, 100] {
         for tree_density in vec![0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9] {
@@ -236,12 +256,6 @@ mod hoshen_kopelman {
     use crate::simple_forest_fire::Forrest;
     use ndarray::Array2;
 
-    struct Clustering {
-        occupied: Array2<bool>,
-        labels: Vec<usize>,
-        label: Array2<usize>,
-    }
-
     type Label = usize;
     pub(crate) struct Raster {
         occupied: Array2<bool>,
@@ -249,6 +263,10 @@ mod hoshen_kopelman {
     }
 
     impl Raster {
+        pub(crate) fn labels_array(&self) -> &Array2<Label> {
+            &self.label
+        }
+
         pub(crate) fn no_clusters(&self) -> usize {
             self.label.fold(0usize, |acc, x| acc.max(*x))
         }
