@@ -189,22 +189,59 @@ fn example() {
 
 fn find_all_periodic_neighbours(lattice: &[i32]) -> Vec<Vec<i32>> {
 fn find_all_periodic_neighbours<T: Copy>(lattice: &[T]) -> Vec<Vec<T>> {
+
+/// For all elements in `lattice`, returns themselves including their neighbours.
+/// I.e. one is a neighbour to thyself.
+/// One could remove the element from its neighbour-slice.
+fn find_all_periodic_neighbours<T: Copy>(
+    lattice: &[T],
+    neighbourhood: Neighbourhood,
+) -> Vec<Vec<T>> {
     let n = lattice.len() as isize;
+
+    //    let Neighbourhood::Radius(radius) = neighbourhood;
+
+    let radius = match neighbourhood {
+        Neighbourhood::Radius(a) => a,
+        _ => todo!(),
+    };
+
+    if radius >= lattice.len() as u32 {
+        panic!("neighbourhood radius is too large")
+    }
+
     lattice
         .iter()
         .enumerate()
         .map(|(id, _)| {
             let intervals;
+            let left = id as isize - radius as isize;
+            let right = id as isize + radius as isize + 1;
             if left < 0 {
                 intervals = vec![(n + left) as usize..n as usize, 0..right as usize];
+                //                intervals = vec![(n + left) as usize..n as usize, 0..right as usize];
+                intervals = vec![
+                    (n + left) as usize..n as usize,
+                    0..id,
+                    id + 1..right as usize,
+                ];
             } else if right >= n {
                 intervals = vec![left as usize..n as usize, 0..(right % n) as usize];
+                //                intervals = vec![left as usize..n as usize, 0..(right % n) as usize];
+                intervals = vec![
+                    left as usize..id,
+                    id + 1..n as usize,
+                    0..(right % n) as usize,
+                ];
             } else {
                 intervals = vec![left as usize..right as usize];
+                //                intervals = vec![left as usize..right as usize];
+                intervals = vec![left as usize..id, id + 1..right as usize];
             }
             intervals
                 .into_iter()
                 .map(|x| lattice.get(x).clone().unwrap().to_vec())
+                .map(|x| lattice.get(x).clone().unwrap_or_default().to_vec())
                 .flatten()
                 .collect_vec()
         })
@@ -214,9 +251,28 @@ fn find_all_periodic_neighbours<T: Copy>(lattice: &[T]) -> Vec<Vec<T>> {
 #[test]
 fn one_dim_periodic_boundary_neighbours() {
     let lattice = vec![43, 24, 10, 20, 4];
+    let neighbourhood = find_all_periodic_neighbours(&lattice, Neighbourhood::Radius(1));
     println!("{:?}", lattice);
+    println!("{:?}\nSize = {:}", neighbourhood, neighbourhood.len());
+    println!("{:?}", neighbourhood.iter().map(Vec::len).collect_vec());
     print!("\n\n");
     use Mark::*;
     let lattice = vec![Red, None, None, Blue, Blue, Red, Blue, None, Blue];
+    let neighbourhood = find_all_periodic_neighbours(&lattice, Neighbourhood::Radius(1));
     println!("{:?}", lattice);
+    println!("{:?}\nSize = {:}", neighbourhood, neighbourhood.len());
+    println!("{:?}", neighbourhood.iter().map(Vec::len).collect_vec());
+    print!("\n\n");
+    let lattice = vec![43, 24, 10, 20, 4];
+    let neighbourhood = find_all_periodic_neighbours(&lattice, Neighbourhood::Radius(2));
+    println!("{:?}", lattice);
+    println!("{:?}\nSize = {:}", neighbourhood, neighbourhood.len());
+    println!("{:?}", neighbourhood.iter().map(Vec::len).collect_vec());
+    print!("\n\n");
+    use Mark::*;
+    let lattice = vec![Red, None, None, Blue, Blue, Red, Blue, None, Blue];
+    let neighbourhood = find_all_periodic_neighbours(&lattice, Neighbourhood::Radius(2));
+    println!("{:?}", lattice);
+    println!("{:?}\nSize = {:}", neighbourhood, neighbourhood.len());
+    println!("{:?}", neighbourhood.iter().map(Vec::len).collect_vec());
 }
