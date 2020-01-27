@@ -40,6 +40,24 @@ struct Model {
     agents: Vec<Agent>,
 }
 
+enum Neighbourhood {
+    Radius(u32),
+    Neighbours(u32),
+}
+
+impl Neighbourhood {
+    fn from_radius(radius: u32) -> Self {
+        match radius {
+            1 => Self::Neighbours(8),
+            2 => Self::Neighbours(24),
+            3 => Self::Neighbours(48),
+            4 => Self::Neighbours(80),
+            5 => Self::Neighbours(120),
+            _ => panic!("invalid radius"),
+        }
+    }
+}
+
 #[derive(Debug, Copy, Clone)]
 struct Agent {
     position: (isize, isize),
