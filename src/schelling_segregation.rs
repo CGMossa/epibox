@@ -42,17 +42,11 @@ struct Model {
 
 enum Neighbourhood {
     Radius(u32),
-    Neighbours(u32),
 }
 
 impl Neighbourhood {
     fn from_radius(radius: u32) -> Self {
         match radius {
-            1 => Self::Neighbours(8),
-            2 => Self::Neighbours(24),
-            3 => Self::Neighbours(48),
-            4 => Self::Neighbours(80),
-            5 => Self::Neighbours(120),
             _ => panic!("invalid radius"),
         }
     }
@@ -201,8 +195,6 @@ fn find_all_periodic_neighbours<T: Copy>(lattice: &[T]) -> Vec<Vec<T>> {
         .enumerate()
         .map(|(id, _)| {
             let intervals;
-            let left = id as isize - 1;
-            let right = id as isize + 2;
             if left < 0 {
                 intervals = vec![(n + left) as usize..n as usize, 0..right as usize];
             } else if right >= n {
@@ -223,10 +215,8 @@ fn find_all_periodic_neighbours<T: Copy>(lattice: &[T]) -> Vec<Vec<T>> {
 fn one_dim_periodic_boundary_neighbours() {
     let lattice = vec![43, 24, 10, 20, 4];
     println!("{:?}", lattice);
-    println!("{:?}", find_all_periodic_neighbours(&lattice));
     print!("\n\n");
     use Mark::*;
     let lattice = vec![Red, None, None, Blue, Blue, Red, Blue, None, Blue];
     println!("{:?}", lattice);
-    println!("{:?}", find_all_periodic_neighbours(&lattice));
 }
