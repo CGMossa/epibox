@@ -1,6 +1,7 @@
 //! Source: [Assignment 4](http://prac.im.pwr.wroc.pl/~szwabin/assets/abm/labs/l4.pdf)
 use itertools::{zip, Itertools};
 use ndarray::Array2;
+use std::collections::HashSet;
 use std::fmt::{Display, Error, Formatter};
 use std::iter::once;
 
@@ -163,14 +164,60 @@ impl Model {
 
     /// TODO: Add range of cells where it is considered neighbours
     fn closest_neighbours(&self, position: (isize, isize)) -> Vec<Mark> {
-        let left_x = position.0 - 1;
-        let right_x = position.0 + 2;
-        let left_y = position.1 - 1;
-        let right_y = position.1 + 2;
+        use itertools::iproduct;
+        use ndarray::s;
+        let n = self.lattice.dim().0 as isize;
+        //FIXME: this is all wrongly configured
+        let radius = 1;
+        //        let radius = self.m_blued;
+        //        let radius = match neighbourhood {
+        //            Neighbourhood::Radius(a) => a,
+        //            _ => todo!(),
+        //        };
 
-        //        periodic_boundary_intervals = vec![];
+        //        if radius >= lattice.len() as u32 {
+        //            panic!("neighbourhood radius is too large")
+        //        }
 
-        todo!()
+        //        lattice
+        //            .indexed_iter()
+        //            .map(|((idx, idy), _)| {
+        let idx = position.0;
+        let idy = position.1;
+
+        let intervalsx;
+        let intervalsy;
+        let leftx = idx as isize - radius as isize;
+        let rightx = idx as isize + radius as isize + 1;
+        let lefty = idy as isize - radius as isize;
+        let righty = idy as isize + radius as isize + 1;
+
+        if leftx < 0 {
+            intervalsx = vec![0..rightx as usize, (n + leftx) as usize..n as usize];
+        } else if rightx >= n {
+            intervalsx = vec![0..(rightx % n) as usize, leftx as usize..n as usize];
+        } else {
+            intervalsx = vec![leftx as usize..rightx as usize];
+        }
+        if lefty < 0 {
+            intervalsy = vec![0..righty as usize, (n + lefty) as usize..n as usize];
+        } else if righty >= n {
+            intervalsy = vec![0..(righty % n) as usize, lefty as usize..n as usize];
+        } else {
+            intervalsy = vec![lefty as usize..righty as usize];
+        }
+
+        // APPROACH 1
+        iproduct!(intervalsx.into_iter(), intervalsy.into_iter())
+            .map(|(x, y)| {
+                self.lattice
+                    .slice(s![x, y])
+                    .into_iter()
+                    .cloned()
+                    .collect_vec()
+            })
+            .flatten()
+            .collect_vec()
     }
 
     fn run() {
@@ -198,14 +245,15 @@ impl Model {
     }
 }
 
-fn find_all_periodic_boundary_neighbours_2d(
-    lattice: Array2<i32>,
+/// Returns all the neighbours with periodic boundary condition, including the
+/// origin.
+fn find_all_periodic_boundary_neighbours_2d<T: Clone>(
+    lattice: Array2<T>,
     neighbourhood: Neighbourhood,
-) -> Vec<Vec<i32>> {
+) -> Vec<Vec<T>> {
     use itertools::iproduct;
     use ndarray::s;
     let n = lattice.dim().0 as isize;
-    //    dbg!(n);
     let radius = match neighbourhood {
         Neighbourhood::Radius(a) => a,
         _ => todo!(),
@@ -221,68 +269,28 @@ fn find_all_periodic_boundary_neighbours_2d(
             let intervalsx;
             let intervalsy;
             let leftx = idx as isize - radius as isize;
-            let lefty = idy as isize - radius as isize;
             let rightx = idx as isize + radius as isize + 1;
+            let lefty = idy as isize - radius as isize;
             let righty = idy as isize + radius as isize + 1;
 
             if leftx < 0 {
-                //intervals = vec![(n + left) as usize..n as usize, 0..right as usize];
-                intervalsx = vec![
-                    (n + leftx) as usize..n as usize,
-                    0..idx,
-                    idx + 1..rightx as usize,
-                ];
+                intervalsx = vec![0..rightx as usize, (n + leftx) as usize..n as usize];
             } else if rightx >= n {
-                //intervals = vec![left as usize..n as usize, 0..(right % n) as usize];
-                intervalsx = vec![
-                    leftx as usize..idx,
-                    idx + 1..n as usize,
-                    0..(rightx % n) as usize,
-                ];
+                intervalsx = vec![0..(rightx % n) as usize, leftx as usize..n as usize];
             } else {
-                //intervals = vec![left as usize..right as usize];
-                intervalsx = vec![leftx as usize..idx, idx + 1..rightx as usize];
+                intervalsx = vec![leftx as usize..rightx as usize];
             }
             if lefty < 0 {
-                //intervals = vec![(n + left) as usize..n as usize, 0..right as usize];
-                intervalsy = vec![
-                    (n + lefty) as usize..n as usize,
-                    0..idy,
-                    idy + 1..righty as usize,
-                ];
+                intervalsy = vec![0..righty as usize, (n + lefty) as usize..n as usize];
             } else if righty >= n {
-                //intervals = vec![left as usize..n as usize, 0..(right % n) as usize];
-                intervalsy = vec![
-                    lefty as usize..idy,
-                    idy + 1..n as usize,
-                    0..(righty % n) as usize,
-                ];
+                intervalsy = vec![0..(righty % n) as usize, lefty as usize..n as usize];
             } else {
-                //intervals = vec![left as usize..right as usize];
-                intervalsy = vec![lefty as usize..idy, idy + 1..righty as usize];
+                intervalsy = vec![lefty as usize..righty as usize];
             }
 
             // APPROACH 1
-            //            iproduct!(intervalsx.into_iter(), intervalsy.into_iter())
-            // APPROACH 2
-            intervalsx
-                .into_iter()
-                .cartesian_product(intervalsy.into_iter())
-                // APPROACH 3
-                //            intervalsx
-                //                .clone()
-                //                .into_iter()
-                //                .interleave(intervalsx.into_iter())
-                //                .zip(
-                //                    intervalsy
-                //                        .clone()
-                //                        .into_iter()
-                //                        .interleave(intervalsy.into_iter()),
-                //                )
-                .map(|(x,y)|
-//                    lattice.get(x).clone().unwrap_or_default().to_vec()
-                    lattice.slice(s![x, y])
-                        .into_iter().cloned().collect_vec())
+            iproduct!(intervalsx.into_iter(), intervalsy.into_iter())
+                .map(|(x, y)| lattice.slice(s![x, y]).into_iter().cloned().collect_vec())
                 .flatten()
                 .collect_vec()
         })
@@ -298,6 +306,13 @@ fn figuring_out_boundary_slicing() {
     let neighbourhood = find_all_periodic_boundary_neighbours_2d(arr, Neighbourhood::Radius(1));
     println!("{:#?}\nSize = {}", neighbourhood, neighbourhood.len());
     println!("{:?}", neighbourhood.iter().map(|x| x.len()).collect_vec());
+    println!(
+        "{:?}",
+        neighbourhood
+            .iter()
+            .map(|x| x.len())
+            .collect::<HashSet<_>>()
+    );
 }
 
 #[test]
