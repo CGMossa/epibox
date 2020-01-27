@@ -192,4 +192,35 @@ fn example() {
 
     //    println!("{:}", Model::new(10, 2).lattice);
     //    println!("{:}", Model::new(10, 2).lattice);
+
+fn find_all_periodic_neighbours(lattice: &[i32]) -> Vec<Vec<i32>> {
+    let n = lattice.len() as isize;
+    lattice
+        .iter()
+        .enumerate()
+        .map(|(id, _)| {
+            let intervals;
+            let left = id as isize - 1;
+            let right = id as isize + 2;
+            if left < 0 {
+                intervals = vec![(n + left) as usize..n as usize, 0..right as usize];
+            } else if right >= n {
+                intervals = vec![left as usize..n as usize, 0..(right % n) as usize];
+            } else {
+                intervals = vec![left as usize..right as usize];
+            }
+            intervals
+                .into_iter()
+                .map(|x| lattice.get(x).clone().unwrap().to_vec())
+                .flatten()
+                .collect_vec()
+        })
+        .collect_vec()
+}
+
+#[test]
+fn one_dim_periodic_boundary_neighbours() {
+    let lattice = vec![43, 24, 10, 20, 4];
+    println!("{:?}", lattice);
+    println!("{:?}", find_all_periodic_neighbours(&lattice));
 }
