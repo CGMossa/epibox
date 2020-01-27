@@ -194,6 +194,7 @@ fn example() {
     //    println!("{:}", Model::new(10, 2).lattice);
 
 fn find_all_periodic_neighbours(lattice: &[i32]) -> Vec<Vec<i32>> {
+fn find_all_periodic_neighbours<T: Copy>(lattice: &[T]) -> Vec<Vec<T>> {
     let n = lattice.len() as isize;
     lattice
         .iter()
@@ -221,6 +222,11 @@ fn find_all_periodic_neighbours(lattice: &[i32]) -> Vec<Vec<i32>> {
 #[test]
 fn one_dim_periodic_boundary_neighbours() {
     let lattice = vec![43, 24, 10, 20, 4];
+    println!("{:?}", lattice);
+    println!("{:?}", find_all_periodic_neighbours(&lattice));
+    print!("\n\n");
+    use Mark::*;
+    let lattice = vec![Red, None, None, Blue, Blue, Red, Blue, None, Blue];
     println!("{:?}", lattice);
     println!("{:?}", find_all_periodic_neighbours(&lattice));
 }
