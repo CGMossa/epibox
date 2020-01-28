@@ -1,9 +1,12 @@
 //! Source: [Assignment 4](http://prac.im.pwr.wroc.pl/~szwabin/assets/abm/labs/l4.pdf)
 use itertools::{zip, Itertools};
 use ndarray::Array2;
+use rand::seq::IteratorRandom;
+use rand::thread_rng;
 use std::collections::HashSet;
+use std::convert::TryInto;
 use std::fmt::{Display, Error, Formatter};
-use std::iter::once;
+use std::iter::{once, FromIterator};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Mark {
@@ -26,7 +29,9 @@ impl Display for Mark {
     }
 }
 /// `j_red` and `j_blue` can be thought of as thresholds.
-/// `m_red` and `m_blue` are no. of closest neighbours to consider
+/// `m_red` and `m_blue` are no. of closest neighbours to consider.
+/// Presumably `j_red` and `j_blue` are percentages.
+#[derive(Clone)]
 struct Model {
     //    no_agents: usize,
     no_red: usize,
@@ -35,8 +40,9 @@ struct Model {
     m_blue: usize,
     j_red: usize,
     j_blue: usize,
-    lattice: Array2<Mark>,
-    agents: Vec<Agent>,
+    //    lattice: Array2<Mark>,
+    lattice: Array2<Option<Agent>>,
+    //    agents: Vec<&'a Agent>,
 }
 
 enum Neighbourhood {
@@ -85,7 +91,7 @@ impl Neighbourhood {
     }
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 struct Agent {
     position: (isize, isize),
     mark: Mark,
@@ -111,42 +117,63 @@ impl Model {
         no_red: usize,
         m_red: usize,
         m_blue: usize,
-        j_red: usize,
-        j_blue: usize,
+        j_red: f64,
+        j_blue: f64,
     ) -> Self {
-        let lattice_size = 10;
+        let lattice_size = 100;
 
         // FIXME: incorporate m_t closest neighbours
         assert_eq!(m_red, 8);
         assert_eq!(m_blue, 8);
 
-        assert!(j_red <= m_red);
-        assert!(j_blue <= m_blue);
+        assert!(0.1 <= j_red && j_red <= 0.9);
+        assert!(0.1 <= j_blue && j_blue <= 0.9);
+
+        let j_red: usize = (j_red * m_red as f64) as usize;
+        let j_blue: usize = (j_blue * m_blue as f64) as usize;
+
+        //        assert!(j_red <= m_red as f64);
+        //        assert!(j_blue <= m_blue as f64);
 
         assert!(m_red <= lattice_size);
         assert!(m_blue <= lattice_size);
 
-        let mut lattice = Array2::from_elem((lattice_size, lattice_size), Mark::None);
+        //        let mut lattice = Array2::from_elem((lattice_size, lattice_size), Mark::None);
+        let mut lattice = Array2::from_elem((lattice_size, lattice_size), None);
 
         use rand::prelude::*;
 
-        let mut agents = Vec::with_capacity(no_red + no_blue);
+        //        let mut agents = Vec::with_capacity(no_red + no_blue);
         let marks = once(Mark::Red)
             .cycle()
             .take(no_red)
             .chain(once(Mark::Blue).cycle().take(no_blue));
+        // Place the marks randomly on the grid
         for (((x, y), cell), mark) in lattice
             .indexed_iter_mut()
             .choose_multiple(&mut thread_rng(), no_red + no_blue)
             .into_iter()
             .zip(marks)
         {
-            *cell = mark.clone();
-            agents.push(Agent {
+            //TODO: is it possible to place agents directly in the array and have the list of agents
+            // be a list of references to those agents?
+            //            let an_agent = Agent {
+            //                position: (x as isize, y as isize),
+            //                mark: mark.clone(),
+            //                moving: true,
+            //            };
+            *cell = Some(Agent {
                 position: (x as isize, y as isize),
                 mark: mark.clone(),
                 moving: true,
             });
+            //            agents.push(cell.as_ref().unwrap());
+            //            *cell = mark.clone();
+            //            agents.push(Agent {
+            //                position: (x as isize, y as isize),
+            //                mark: mark.clone(),
+            //                moving: true,
+            //            });
         }
 
         // The update-scheme first starts off with the red individuals and onto the blue individuals
@@ -158,12 +185,12 @@ impl Model {
             j_red,
             j_blue,
             lattice,
-            agents,
+            //            agents,
         }
     }
 
     /// TODO: Add range of cells where it is considered neighbours
-    fn closest_neighbours(&self, position: (isize, isize)) -> Vec<Mark> {
+    fn closest_neighbours(&self, position: (isize, isize)) -> Vec<Option<Agent>> {
         use itertools::iproduct;
         use ndarray::s;
         let n = self.lattice.dim().0 as isize;
@@ -213,6 +240,10 @@ impl Model {
                 self.lattice
                     .slice(s![x, y])
                     .into_iter()
+                    //                    .map(|x: Option<Agent>| match x {
+                    //                        None => Mark::None,
+                    //                        Some(a) => a,
+                    //                    })
                     .cloned()
                     .collect_vec()
             })
@@ -220,29 +251,198 @@ impl Model {
             .collect_vec()
     }
 
-    fn run() {
-        todo!()
+    fn run(&mut self) {
+        while self.moving_agents().len() != 0 {}
+    }
+
+    /// Executes one update for each moving agent in the model.
+    fn update_moving_agents(&mut self) {
+        let past_lattice = self.clone();
+        let empty_positions = past_lattice
+            .lattice
+            .indexed_iter()
+            .filter(|(_, x)| x.is_none())
+            .map(|x| ((x.0).0 as isize, (x.0).1 as isize))
+            .choose_multiple(&mut thread_rng(), past_lattice.no_agents());
+
+        for (agent, new_position) in self
+            .moving_agents()
+            .into_iter()
+            .zip(empty_positions.into_iter())
+        {
+            let same_type_neighbours: isize = past_lattice
+                .closest_neighbours(agent.position)
+                .iter()
+                .map(|x| match x {
+                    None => 0,
+                    Some(neighbour_agent) if neighbour_agent.mark == agent.mark => 1,
+                    Some(_) => 0,
+                })
+                .sum();
+            let same_type_neighbours = same_type_neighbours - 1; // subtract origin
+                                                                 //dbg!(agent.position);
+            match agent.mark {
+                Mark::None => unreachable!("agent is not assigned type"),
+                Mark::Blue => {
+                    if same_type_neighbours > past_lattice.j_blue as isize {
+                        print!("Moved. ");
+                        agent.position = new_position;
+                        *self
+                            .lattice
+                            .get_mut((new_position.0 as usize, new_position.1 as usize))
+                            .unwrap() = Some(*agent);
+                    } else if same_type_neighbours == past_lattice.j_blue as isize {
+                        // settle individual
+                        print!("Settled. ");
+                        agent.moving = false;
+                    }
+                }
+                Mark::Red => {
+                    if same_type_neighbours > past_lattice.j_red as isize {
+                        print!("Moved. ");
+                        agent.position = new_position;
+                    } else if same_type_neighbours == past_lattice.j_red as isize {
+                        // settle individual
+                        print!("Settled. ");
+                        agent.moving = false;
+                    }
+                }
+            }
+            //dbg!(agent.position);
+        }
+        print!("\n");
+        //FIXME: locations of the moved agents should be reflected in their position in the lattice.
     }
 
     /// Similar neighbor index
     fn segregation_index(&self) -> f64 {
         // for all individuals of a certain type, find the number of their neighbors that are of
         // the same type, and average over this.
-        self.agents
+
+        self.lattice
             .iter()
+            .filter(|x: &&Option<Agent>| x.is_some())
+            .clone()
             .map(
-                |agent| {
+                |some_agent| {
+                    let agent = some_agent.unwrap();
                     self.closest_neighbours(agent.position)
                         .iter()
-                        .map(|x| if *x == agent.mark { 1. } else { 0. })
+                        .map(|&x| match x {
+                            None => 0.,
+                            Some(a) => {
+                                if a.mark == agent.mark {
+                                    1.
+                                } else {
+                                    0.
+                                }
+                            }
+                        })
+                        //                        .map(|x| if *x == agent.mark { 1. } else { 0. })
                         //                        .map(|x| if agent.mark == x.mark { 1. } else { 0. })
                         .sum::<f64>()
                         / self.m_red as f64
                 }, //FIXME: no way to select m based on Mark
             )
             .sum::<f64>()
-            / self.agents.len() as f64
+            / self.no_agents() as f64
     }
+
+    //    fn agents(&mut self) -> Vec<&mut Agent> {
+    //        self.lattice.iter_mut().flat_map(|x| x).collect()
+    //    }
+
+    fn moving_agents(&mut self) -> Vec<&mut Agent> {
+        self.lattice
+            .iter_mut()
+            .flat_map(|x| x)
+            .filter(|x| x.moving)
+            .collect()
+    }
+
+    fn mark_lattice(&self) -> Array2<Mark> {
+        self.lattice.mapv(|x| match x {
+            None => Mark::None,
+            Some(a) => a.mark,
+        })
+    }
+}
+
+#[test]
+#[ignore]
+fn baseline_model() {
+    let mut baseline_model = Model::new(250, 250, 8, 8, 0.5, 0.5);
+
+    println!("{:?}", baseline_model.mark_lattice());
+    println!("{:?}", baseline_model.segregation_index());
+
+    println!("Running model until all agents have settled:");
+    baseline_model.run();
+    println!("{:?}", baseline_model.mark_lattice());
+    println!("{:?}", baseline_model.segregation_index());
+}
+
+#[test]
+fn example_runs() {
+    let mut sketch_model = Model::new(50, 25, 8, 8, 0.1, 0.1);
+    //    println!("{:?}", sketch_model.lattice);
+    println!("{:?}", sketch_model.lattice.dim());
+    //    println!("{:?}", sketch_model.agents());
+    println!("{:}\n", sketch_model.mark_lattice());
+    println!("{:}\n", sketch_model.segregation_index());
+
+    sketch_model.update_moving_agents();
+    //    println!("{:?}", sketch_model.agents());
+    println!("{:}", sketch_model.mark_lattice());
+    println!("{:}", sketch_model.segregation_index());
+
+    for (pos, cell) in sketch_model.lattice.indexed_iter() {
+        if let Some(agent) = cell {
+            if pos.0 as isize != agent.position.0 || pos.1 as isize != agent.position.1 {
+                println!("{:<2?} === {:<2?}", pos, agent.position);
+            }
+        }
+    }
+}
+
+#[test]
+fn example() {
+    //    let sketch_model = Model::new(20, 5, 8, 8, 0.1, 0.1);
+    let sketch_model = Model::new(250, 250, 8, 8, 0.1, 0.1);
+    println!("{:?}", sketch_model.lattice);
+    println!("{:?}", sketch_model.lattice.dim());
+
+    let all_neighbourhoods = sketch_model
+        .lattice
+        .indexed_iter()
+        .map(|((x, y), _)| {
+            sketch_model
+                .closest_neighbours((x as isize, y as isize))
+                .len()
+        })
+        .collect_vec();
+    println!(
+        "No. of neighbours {:?}\nSet of lengths: {:?}",
+        all_neighbourhoods,
+        all_neighbourhoods.iter().collect::<HashSet<_>>()
+    );
+
+    println!(
+        "Closest indices of (9, 9): {:?}\n",
+        sketch_model.closest_neighbours((9, 9))
+    );
+    println!(
+        "Closest indices of (0, 0): {:?}\n",
+        sketch_model.closest_neighbours((0, 0))
+    );
+    println!(
+        "Closest indices of (4, 0): {:?}\n",
+        sketch_model.closest_neighbours((4, 0))
+    );
+    let neighbourhood = sketch_model.closest_neighbours((0, 4));
+    println!("Closest indices of (0, 4): {:?}\n", neighbourhood);
+
+    println!("Segregation index: {:?}.", sketch_model.segregation_index());
 }
 
 /// Returns all the neighbours with periodic boundary condition, including the
@@ -313,43 +513,6 @@ fn figuring_out_boundary_slicing() {
             .map(|x| x.len())
             .collect::<HashSet<_>>()
     );
-}
-
-#[test]
-fn example() {
-    let sketch_model = Model::new(20, 5, 8, 8, 0, 0);
-    println!("{:}", sketch_model.lattice);
-    println!("{:?}", sketch_model.lattice.dim());
-
-    println!(
-        "No. of neighbours {:?}",
-        sketch_model
-            .lattice
-            .indexed_iter()
-            .map(|((x, y), _)| sketch_model
-                .closest_neighbours((x as isize, y as isize))
-                .len())
-            .collect_vec()
-    );
-
-    println!(
-        "Closest indices of (9, 9): {:?}\n",
-        sketch_model.closest_neighbours((9, 9))
-    );
-    println!(
-        "Closest indices of (0, 0): {:?}\n",
-        sketch_model.closest_neighbours((0, 0))
-    );
-    println!(
-        "Closest indices of (4, 0): {:?}\n",
-        sketch_model.closest_neighbours((4, 0))
-    );
-    println!(
-        "Closest indices of (0, 4): {:?}\n",
-        sketch_model.closest_neighbours((0, 4))
-    );
-
-    println!("Segregation index: {:?}.", sketch_model.segregation_index());
 }
 
 /// For all elements in `lattice`, returns themselves ~including~ excluding their neighbours.
