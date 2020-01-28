@@ -1,3 +1,4 @@
+#![feature(option_expect_none)]
 //mod population;
 //mod disease;
 
@@ -7,8 +8,8 @@
 //mod game_of_life;
 //mod heroes_and_cowards;
 
-pub mod simple_forest_fire;
-pub mod simple_forest_fire_with_wind;
+//pub mod simple_forest_fire;
+//pub mod simple_forest_fire_with_wind;
 
 mod schelling_segregation;
 //
