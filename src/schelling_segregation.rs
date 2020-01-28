@@ -1,12 +1,17 @@
 //! Source: [Assignment 4](http://prac.im.pwr.wroc.pl/~szwabin/assets/abm/labs/l4.pdf)
-use itertools::{zip, Itertools};
+use itertools::Itertools;
 use ndarray::Array2;
 use rand::seq::IteratorRandom;
 use rand::thread_rng;
+use std::cell::RefCell;
 use std::collections::HashSet;
-use std::convert::TryInto;
+use std::convert::identity;
 use std::fmt::{Display, Error, Formatter};
-use std::iter::{once, FromIterator};
+use std::iter::once;
+use std::ops::Deref;
+use std::rc::Rc;
+
+const MAX_ITERATIONS: i32 = 10000;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Mark {
@@ -31,7 +36,7 @@ impl Display for Mark {
 /// `j_red` and `j_blue` can be thought of as thresholds.
 /// `m_red` and `m_blue` are no. of closest neighbours to consider.
 /// Presumably `j_red` and `j_blue` are percentages.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 struct Model {
     //    no_agents: usize,
     no_red: usize,
@@ -91,20 +96,11 @@ impl Neighbourhood {
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Debug, Clone, Copy)]
 struct Agent {
     position: (isize, isize),
     mark: Mark,
     moving: bool,
-}
-
-impl Iterator for Agent {
-    type Item = Self;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        //        unimplemented!()
-        Some(*self)
-    }
 }
 
 impl Model {
@@ -120,7 +116,9 @@ impl Model {
         j_red: f64,
         j_blue: f64,
     ) -> Self {
-        let lattice_size = 100;
+        let lattice_size = 10;
+
+        assert!(lattice_size * lattice_size >= no_blue + no_red);
 
         // FIXME: incorporate m_t closest neighbours
         assert_eq!(m_red, 8);
@@ -143,7 +141,8 @@ impl Model {
 
         use rand::prelude::*;
 
-        //        let mut agents = Vec::with_capacity(no_red + no_blue);
+        //                let mut agents = Vec::with_capacity(no_red + no_blue);
+
         let marks = once(Mark::Red)
             .cycle()
             .take(no_red)
@@ -157,23 +156,11 @@ impl Model {
         {
             //TODO: is it possible to place agents directly in the array and have the list of agents
             // be a list of references to those agents?
-            //            let an_agent = Agent {
-            //                position: (x as isize, y as isize),
-            //                mark: mark.clone(),
-            //                moving: true,
-            //            };
             *cell = Some(Agent {
                 position: (x as isize, y as isize),
-                mark: mark.clone(),
+                mark: mark,
                 moving: true,
             });
-            //            agents.push(cell.as_ref().unwrap());
-            //            *cell = mark.clone();
-            //            agents.push(Agent {
-            //                position: (x as isize, y as isize),
-            //                mark: mark.clone(),
-            //                moving: true,
-            //            });
         }
 
         // The update-scheme first starts off with the red individuals and onto the blue individuals
@@ -240,10 +227,6 @@ impl Model {
                 self.lattice
                     .slice(s![x, y])
                     .into_iter()
-                    //                    .map(|x: Option<Agent>| match x {
-                    //                        None => Mark::None,
-                    //                        Some(a) => a,
-                    //                    })
                     .cloned()
                     .collect_vec()
             })
@@ -252,66 +235,133 @@ impl Model {
     }
 
     fn run(&mut self) {
-        while self.moving_agents().len() != 0 {}
-    }
+        let mut no_iterations = 0;
 
-    /// Executes one update for each moving agent in the model.
-    fn update_moving_agents(&mut self) {
-        let past_lattice = self.clone();
-        let empty_positions = past_lattice
-            .lattice
-            .indexed_iter()
-            .filter(|(_, x)| x.is_none())
-            .map(|x| ((x.0).0 as isize, (x.0).1 as isize))
-            .choose_multiple(&mut thread_rng(), past_lattice.no_agents());
-
-        for (agent, new_position) in self
-            .moving_agents()
-            .into_iter()
-            .zip(empty_positions.into_iter())
-        {
-            let same_type_neighbours: isize = past_lattice
-                .closest_neighbours(agent.position)
+        let mark_count = |model: Self| {
+            model
+                .mark_lattice()
                 .iter()
                 .map(|x| match x {
-                    None => 0,
-                    Some(neighbour_agent) if neighbour_agent.mark == agent.mark => 1,
-                    Some(_) => 0,
+                    Mark::None => 0,
+                    _ => 1,
                 })
-                .sum();
-            let same_type_neighbours = same_type_neighbours - 1; // subtract origin
-                                                                 //dbg!(agent.position);
-            match agent.mark {
-                Mark::None => unreachable!("agent is not assigned type"),
-                Mark::Blue => {
-                    if same_type_neighbours > past_lattice.j_blue as isize {
-                        print!("Moved. ");
-                        agent.position = new_position;
-                        *self
-                            .lattice
-                            .get_mut((new_position.0 as usize, new_position.1 as usize))
-                            .unwrap() = Some(*agent);
-                    } else if same_type_neighbours == past_lattice.j_blue as isize {
-                        // settle individual
-                        print!("Settled. ");
-                        agent.moving = false;
-                    }
-                }
-                Mark::Red => {
-                    if same_type_neighbours > past_lattice.j_red as isize {
-                        print!("Moved. ");
-                        agent.position = new_position;
-                    } else if same_type_neighbours == past_lattice.j_red as isize {
-                        // settle individual
-                        print!("Settled. ");
-                        agent.moving = false;
-                    }
+                .sum::<usize>()
+        };
+
+        dbg!(mark_count(self.clone()));
+        //        while self
+        //            .lattice
+        //            .iter()
+        //            .filter_map(|x| match x {
+        //                None => None,
+        //                Some(a) if a.moving => Some(true),
+        //                _ => Some(false),
+        //            })
+        //            .clone()
+        //            .any(identity)
+        //        {
+        for _iter in 0..MAX_ITERATIONS {
+            self.update_moving_agent();
+            no_iterations += 1;
+
+            if no_iterations % 25 == 0 {
+                println!("Iteration: {:<5}", no_iterations);
+                dbg!(mark_count(self.clone()));
+            }
+
+            if no_iterations == MAX_ITERATIONS {
+                break;
+            }
+        }
+        dbg!(mark_count(self.clone()));
+    }
+
+    fn update_moving_agent(&mut self) {
+        //        let present_lattice = self.lattice.clone();
+        use ndarray::s;
+        let mut rc_lattice = Rc::new(RefCell::new(self.lattice.clone()));
+        let moving_agent: &mut Agent = *rc_lattice
+            .borrow_mut()
+            .iter_mut()
+            .filter_map(|cell| match cell {
+                Some(ref mut agent) if agent.moving => Some(agent),
+                _ => None,
+            })
+            .next()
+            .expect("no moving agents available");
+
+        let empty_position = Rc::get_mut(&mut rc_lattice)
+            .unwrap()
+            .indexed_iter()
+            .filter_map(|(pos, x)| match x {
+                None => Some(pos),
+                Some(_) => None,
+            })
+            .choose(&mut thread_rng())
+            .expect("no empty cells available");
+
+        //dbg!(&moving_agent);
+        //dbg!(empty_position);
+
+        let same_type_neighbours: isize = self
+            .closest_neighbours(moving_agent.clone().position)
+            .into_iter()
+            .map(|x| match x {
+                None => 0,
+                Some(neighbour_agent) if neighbour_agent.mark == moving_agent.mark => 1,
+                Some(_) => 0,
+            })
+            .sum();
+        let same_type_neighbours = same_type_neighbours - 1; // subtract origin
+                                                             //dbg!(same_type_neighbours);
+
+        let previous_location = (
+            moving_agent.position.0 as usize,
+            moving_agent.position.1 as usize,
+        );
+        moving_agent.position = (empty_position.0 as isize, empty_position.1 as isize);
+
+        dbg!(previous_location, empty_position);
+        dbg!(&self.lattice.get(previous_location).unwrap());
+        dbg!(&self.lattice.get(empty_position).unwrap());
+
+        assert!(self.lattice.get(previous_location).unwrap().is_some());
+        assert!(self.lattice.get(empty_position).unwrap().is_none());
+
+        match moving_agent.mark {
+            Mark::None => unreachable!("agent is not assigned type"),
+            Mark::Blue => {
+                if same_type_neighbours > self.j_blue as isize {
+                    //                    print!("Moved. ");
+                    *self
+                        .lattice
+                        .get_mut(empty_position)
+                        .expect("new position was not empty") = Some(*moving_agent);
+                    *self
+                        .lattice
+                        .get_mut(previous_location)
+                        .expect("previous location was empty already") = None;
+                } else if same_type_neighbours == self.j_blue as isize {
+                    // settle individual
+                    // print!("Settled. ");
+                    moving_agent.moving = false;
                 }
             }
-            //dbg!(agent.position);
+            Mark::Red => {
+                if same_type_neighbours > self.j_red as isize {
+                    *self.lattice.get_mut(empty_position).unwrap() = Some(*moving_agent);
+                    *self
+                        .lattice
+                        .get_mut(previous_location)
+                        .expect("previous location was empty already") = None;
+                } else if same_type_neighbours == self.j_red as isize {
+                    // settle individual
+                    // print!("Settled. ");
+                    moving_agent.moving = false;
+                }
+            }
         }
-        print!("\n");
-        //FIXME: locations of the moved agents should be reflected in their position in the lattice.
+        //print!("\n")
     }
 
     /// Similar neighbor index
@@ -325,12 +375,12 @@ impl Model {
             .clone()
             .map(
                 |some_agent| {
-                    let agent = some_agent.unwrap();
+                    let agent = some_agent.clone().unwrap();
                     self.closest_neighbours(agent.position)
                         .iter()
-                        .map(|&x| match x {
+                        .map(|x| match x {
                             None => 0.,
-                            Some(a) => {
+                            Some(ref a) => {
                                 if a.mark == agent.mark {
                                     1.
                                 } else {
@@ -338,8 +388,8 @@ impl Model {
                                 }
                             }
                         })
-                        //                        .map(|x| if *x == agent.mark { 1. } else { 0. })
-                        //                        .map(|x| if agent.mark == x.mark { 1. } else { 0. })
+                        //.map(|x| if *x == agent.mark { 1. } else { 0. })
+                        //.map(|x| if agent.mark == x.mark { 1. } else { 0. })
                         .sum::<f64>()
                         / self.m_red as f64
                 }, //FIXME: no way to select m based on Mark
@@ -352,13 +402,9 @@ impl Model {
     //        self.lattice.iter_mut().flat_map(|x| x).collect()
     //    }
 
-    fn moving_agents(&mut self) -> Vec<&mut Agent> {
-        self.lattice
-            .iter_mut()
-            .flat_map(|x| x)
-            .filter(|x| x.moving)
-            .collect()
-    }
+    //    fn moving_agents(&mut self) -> impl Iterator<Item = &'static Agent> {
+    //        self.lattice.iter_mut().flat_map(|x| x).filter(|x| x.moving)
+    //    }
 
     fn mark_lattice(&self) -> Array2<Mark> {
         self.lattice.mapv(|x| match x {
@@ -369,37 +415,120 @@ impl Model {
 }
 
 #[test]
-#[ignore]
 fn baseline_model() {
-    let mut baseline_model = Model::new(250, 250, 8, 8, 0.5, 0.5);
+    //    let mut baseline_model = Model::new(250, 250, 8, 8, 0.5, 0.5);
+    let mut baseline_model = Model::new(25, 25, 8, 8, 0.5, 0.5);
 
-    println!("{:?}", baseline_model.mark_lattice());
+    //    println!("{:?}", baseline_model.lattice);
+    println!("{:}", baseline_model.mark_lattice());
     println!("{:?}", baseline_model.segregation_index());
 
     println!("Running model until all agents have settled:");
     baseline_model.run();
-    println!("{:?}", baseline_model.mark_lattice());
+    println!("{:}", baseline_model.mark_lattice());
     println!("{:?}", baseline_model.segregation_index());
 }
 
 #[test]
 fn example_runs() {
-    let mut sketch_model = Model::new(50, 25, 8, 8, 0.1, 0.1);
+    let mut sketch_model = Model::new(50, 25, 8, 8, 0.5, 0.5);
+    use ndarray::prelude::array;
+
     //    println!("{:?}", sketch_model.lattice);
     println!("{:?}", sketch_model.lattice.dim());
     //    println!("{:?}", sketch_model.agents());
+    println!("{:?}\n", sketch_model.lattice);
     println!("{:}\n", sketch_model.mark_lattice());
     println!("{:}\n", sketch_model.segregation_index());
 
-    sketch_model.update_moving_agents();
+    println!(
+        "Mark count before updates: {}",
+        sketch_model
+            .mark_lattice()
+            .iter()
+            .map(|x| match x {
+                Mark::None => 0,
+                _ => 1,
+            })
+            .sum::<usize>()
+    );
+
+    //FIXME: update agents
+    sketch_model.update_moving_agent();
+    sketch_model.update_moving_agent();
+    sketch_model.update_moving_agent();
+    sketch_model.update_moving_agent();
+    sketch_model.update_moving_agent();
+    sketch_model.update_moving_agent();
+    sketch_model.update_moving_agent();
+    sketch_model.update_moving_agent();
+    sketch_model.update_moving_agent();
+    sketch_model.update_moving_agent();
+    sketch_model.update_moving_agent();
+    sketch_model.update_moving_agent();
+    sketch_model.update_moving_agent();
+    sketch_model.update_moving_agent();
+    sketch_model.update_moving_agent();
+    sketch_model.update_moving_agent();
+    sketch_model.update_moving_agent();
+    sketch_model.update_moving_agent();
+    sketch_model.update_moving_agent();
+    sketch_model.update_moving_agent();
+    sketch_model.update_moving_agent();
+    sketch_model.update_moving_agent();
+    sketch_model.update_moving_agent();
+    sketch_model.update_moving_agent();
+    sketch_model.update_moving_agent();
+    sketch_model.update_moving_agent();
+    sketch_model.update_moving_agent();
+    sketch_model.update_moving_agent();
+    sketch_model.update_moving_agent();
+    sketch_model.update_moving_agent();
+    sketch_model.update_moving_agent();
+    //    sketch_model.update_moving_agent();
+    //    sketch_model.update_moving_agent();
+    //    sketch_model.update_moving_agent();
+    //    sketch_model.update_moving_agent();
+    //    sketch_model.update_moving_agent();
+    //    sketch_model.update_moving_agent();
+    //    sketch_model.update_moving_agent();
+    //    sketch_model.update_moving_agent();
+    //    sketch_model.update_moving_agent();
+    //    sketch_model.update_moving_agent();
+    //    sketch_model.update_moving_agent();
+    //    sketch_model.update_moving_agent();
+    //    sketch_model.update_moving_agent();
+    //    sketch_model.update_moving_agent();
+    //    sketch_model.update_moving_agent();
+    //    sketch_model.update_moving_agent();
+    //    sketch_model.update_moving_agent();
+    //    sketch_model.update_moving_agent();
+    //    sketch_model.update_moving_agent();
+    //    sketch_model.update_moving_agent();
+    //    sketch_model.update_moving_agent();
+    //    sketch_model.update_moving_agent();
+    //sketch_model.update_moving_agents();
+
     //    println!("{:?}", sketch_model.agents());
     println!("{:}", sketch_model.mark_lattice());
     println!("{:}", sketch_model.segregation_index());
 
+    println!(
+        "Mark count after updates: {}",
+        sketch_model
+            .mark_lattice()
+            .iter()
+            .map(|x| match x {
+                Mark::None => 0,
+                _ => 1,
+            })
+            .sum::<usize>()
+    );
+
     for (pos, cell) in sketch_model.lattice.indexed_iter() {
         if let Some(agent) = cell {
             if pos.0 as isize != agent.position.0 || pos.1 as isize != agent.position.1 {
-                println!("{:<2?} === {:<2?}", pos, agent.position);
+                println!("{:>2?} === {:>2?}", pos, agent.position);
             }
         }
     }
@@ -519,7 +648,7 @@ fn figuring_out_boundary_slicing() {
 /// I.e. one is a neighbour to thyself.
 /// One could remove the element from its neighbour-slice.
 /// Currently, we remove the origin from each neighbourhood.
-fn find_all_periodic_neighbours<T: Copy>(
+fn find_all_periodic_neighbours<T: Clone>(
     lattice: &[T],
     neighbourhood: Neighbourhood,
 ) -> Vec<Vec<T>> {
