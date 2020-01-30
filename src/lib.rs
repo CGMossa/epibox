@@ -10,10 +10,11 @@
 
 //pub mod simple_forest_fire;
 //pub mod simple_forest_fire_with_wind;
-
-mod schelling_segregation;
 //
 //mod nagel_schreckenberg;
+//mod schelling_segregation;
+//
+mod nagel_schreckenberg;
 //
 //mod boids;
 //
