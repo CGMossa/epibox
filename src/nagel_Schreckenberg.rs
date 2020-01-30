@@ -1,15 +1,9 @@
 //! Source: [Assignment 5](http://prac.im.pwr.wroc.pl/~szwabin/assets/abm/labs/l5.pdf)
 
-use itertools::{max, Itertools};
 use rand::distributions::Distribution;
 use rand::seq::IteratorRandom;
-use rand::{random, thread_rng};
-use std::borrow::{Borrow, BorrowMut};
-use std::cell::{Cell, RefCell};
+use rand::thread_rng;
 use std::fmt::{Display, Error, Formatter};
-use std::iter::once;
-use std::ops::IndexMut;
-use std::rc::Rc;
 
 type CarId = usize;
 #[derive(Debug)]
@@ -85,7 +79,7 @@ impl Display for Road {
                 f,
                 "{}",
                 match x {
-                    None => format!("_"),
+                    None => '_'.to_string(),
                     Some(car_id) => {
                         format!(
                             "{}",
@@ -106,7 +100,7 @@ impl Display for Road {
 impl From<&str> for Road {
     fn from(s: &str) -> Self {
         let mut cars = Vec::new();
-        let mut road_length = 0;
+        let mut road_length = s.trim().len();
         s.trim()
             .char_indices()
             .for_each(|(position, cell)| match cell {
@@ -114,8 +108,6 @@ impl From<&str> for Road {
                 velocity_char @ '0'..='9' => {
                     let velocity = velocity_char.to_digit(10).unwrap() as usize;
                     cars.push(Car { position, velocity });
-                    road_length = position.max(road_length);
-                    //                    Some(cars.len() - 1)
                 }
                 _ => panic!("invalid string provided for road"),
             });
@@ -140,7 +132,7 @@ ____1______1__1___1______1____"
         .split("\n")
         .map(|x: &str| Road::from(x))
         .inspect(|x| println!("{:}", x))
-        .collect_vec();
+        .collect::<Vec<_>>();
 }
 
 #[test]
@@ -160,10 +152,9 @@ fn density(maximum_velocity: usize) -> f64 {
     1. / (maximum_velocity as f64 + 1.)
 }
 
-#[derive()]
 struct Model {
     road: Road,
-    timesteps: VecDeque<Road>,
+    timesteps: Vec<Road>,
     max_velocity: Velocity,
     density: f64,
     max_iterations: usize,
@@ -232,8 +223,8 @@ impl Model {
         road_dimension: RoadDimension,
         max_iterations: usize,
     ) -> Self {
-        let mut density: f64;
-        let mut max_velocity;
+        let density: f64;
+        let max_velocity;
 
         match road_dimension {
             RoadDimension::Density(den) => {
@@ -249,7 +240,7 @@ impl Model {
         //FIXME: move this to the `new`-function to propogate result
         Self {
             road: Road::new(road_length, cars),
-            timesteps: vec_deque![],
+            timesteps: vec![],
             max_velocity,
             density,
             max_iterations,
@@ -259,8 +250,8 @@ impl Model {
         .amend_randomisation_sampler(randomisation_probability)
     }
 
-    fn run(mut self, no_saved_iterations: usize) -> Self {
-        for iteration in (0..self.max_iterations) {
+    fn run(mut self, _no_saved_iterations: usize) -> Self {
+        for _iteration in 0..self.max_iterations {
             self.timesteps.push(Road {
                 cars: self.road.cars.clone(),
                 road_length: self.road.road_length,

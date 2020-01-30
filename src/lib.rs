@@ -11,13 +11,18 @@
 //pub mod simple_forest_fire;
 //pub mod simple_forest_fire_with_wind;
 //
-//mod nagel_schreckenberg;
 //mod schelling_segregation;
-//
-mod nagel_schreckenberg;
+
+//mod nagel_schreckenberg;
 //
 //mod boids;
-//
+
+mod boids_thesis;
+
 //mod situation;
 //
 //mod bass_diffusion;
+
+mod spatial_data_structures;
+
+//mod particle_system;
