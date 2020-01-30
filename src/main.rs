@@ -1,6 +1,5 @@
 //use epibox::simple_forest_fire::percolation_threshold;
 //use itertools::iproduct;
-use itertools::iproduct;
 
 fn main() {
     //    for grid_size in &[20, 50, 100] {

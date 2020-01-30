@@ -1,7 +1,9 @@
 //! Source: [Assignment 5](http://prac.im.pwr.wroc.pl/~szwabin/assets/abm/labs/l5.pdf)
 
 use rand::distributions::Distribution;
+use rand::seq::IteratorRandom;
 use rand::thread_rng;
+use std::fmt::{Display, Error, Formatter};
 use std::iter::once;
 
 /// Circular buffer
@@ -21,6 +23,52 @@ type Velocity = usize;
 #[derive(Copy, Clone, Debug)]
 struct Car {
     velocity: Velocity,
+}
+
+impl Road {
+    fn new(road_length: usize, cars: usize) -> Self {
+        let car_vel_one = Car { velocity: 1 };
+
+        let mut cells = vec![Cell { car: None }; road_length];
+
+        for cell in cells.iter_mut().choose_multiple(&mut thread_rng(), cars) {
+            cell.car = Some(car_vel_one);
+        }
+
+        Self { cells }
+    }
+
+    fn average_velocity(&self) {
+        todo!()
+    }
+}
+
+impl Display for Road {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
+        for x in &self.cells {
+            write!(
+                f,
+                "{}",
+                match x.car {
+                    None => format!("_"),
+                    Some(car) => {
+                        format!("{}", car.velocity)
+                    }
+                }
+            )?;
+        }
+
+        Ok(())
+    }
+}
+
+#[test]
+fn random_placed_cars_on_road() {
+    //    let road = Road::new(10, 5);
+    println!("Roads of length 25 and 5 randomly placed cars:\n");
+    (0..10).for_each(|_| {
+        println!("{}\n", Road::new(25, 5));
+    })
 }
 
 #[derive(Debug)]
@@ -95,6 +143,16 @@ impl Model {
             }
         }
         self.road.cells = new_cells;
+    }
+
+    fn new(road_length: usize, cars: usize, randomisation_probability: f64) -> Self {
+        assert!(cars < road_length);
+
+        Self {
+            road: Road::new(road_length, cars),
+            timesteps: vec![],
+            randomisation_probability,
+        }
     }
 }
 
