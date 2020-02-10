@@ -270,7 +270,7 @@ enum RoadDimension {
 #[test]
 fn test_trajectory() {
     let max_iterations = 60;
-    let mut simple_model = Model::new(150, 10, 0.5, RoadDimension::Density(0.6), 100);
+    let mut simple_model = Model::new(150, 75, 0.5, RoadDimension::MaximalVelocity(13), 100);
     println!("Max. velocity: {:?}", simple_model.max_velocity);
     println!("Density: {:?}", simple_model.density);
     for iteration in 0..max_iterations {

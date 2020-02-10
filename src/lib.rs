@@ -17,12 +17,15 @@
 //
 //mod boids;
 
-mod boids_thesis;
+//mod boids_thesis;
 
 //mod situation;
 //
 //mod bass_diffusion;
 
-mod spatial_data_structures;
+//mod spatial_data_structures;
 
 //mod particle_system;
+
+//mod bayesian_optimisation;
+//mod bayesian_optimisation_example;
